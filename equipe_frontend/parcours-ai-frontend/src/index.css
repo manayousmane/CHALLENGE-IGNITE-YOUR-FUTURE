@@ -1,0 +1,260 @@
+@import "tailwindcss";
+
+/* 
+  Configuration essentielle pour Tailwind CSS v4 :
+  Permet de contrôler le dark mode par la classe .dark sur <html class="dark">
+  au lieu du simple @media query du système d'exploitation.
+*/
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-outfit: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font-outfit);
+    background-color: #010208;
+    color: #e2e8f0;
+    overflow-x: hidden;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  /* Mode clair style e-freeshop.com : bleu doux & blanc reposant pour les yeux */
+  html.light body {
+    background-color: #f0f4f9;
+    color: #1e293b;
+  }
+}
+
+/* -------------------------------------------------------------
+   GLASSMORPHISM & CARTES PROFESSIONNELLES (DARK & LIGHT)
+   ------------------------------------------------------------- */
+.glass-ios {
+  background: rgba(4, 7, 18, 0.85);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 16px 40px -12px rgba(0, 0, 0, 0.85),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+html.light .glass-ios {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid #dce6f2;
+  box-shadow: 
+    0 20px 40px -12px rgba(15, 76, 129, 0.07),
+    0 1px 3px 0 rgba(15, 76, 129, 0.03);
+  color: #1e293b;
+}
+
+/* Cartes Déroulantes Vitrées iOS */
+.glass-ios-menu {
+  background: linear-gradient(135deg, rgba(2, 4, 12, 0.92) 0%, rgba(1, 2, 6, 0.96) 100%);
+  backdrop-filter: blur(32px) saturate(200%);
+  -webkit-backdrop-filter: blur(32px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.95),
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+html.light .glass-ios-menu {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(240, 246, 253, 0.92) 100%);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid #dce6f2;
+  box-shadow: 
+    0 25px 45px -10px rgba(15, 76, 129, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.8),
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 1);
+  color: #1e293b;
+}
+
+/* Boutons intérieurs façon dalles interactives iOS */
+.glass-ios-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-ios-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 
+    0 10px 24px -6px rgba(0, 0, 0, 0.45),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.glass-ios-btn:active {
+  transform: scale(0.985);
+}
+
+html.light .glass-ios-btn {
+  background: #f1f6fc;
+  border: 1px solid #dce6f2;
+  color: #1e293b;
+}
+
+html.light .glass-ios-btn:hover {
+  background: #ffffff;
+  border-color: #38bdf8;
+  box-shadow: 
+    0 8px 20px -4px rgba(15, 76, 129, 0.1),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 1);
+  transform: translateY(-1px);
+}
+
+.glass-ios-card {
+  background: linear-gradient(135deg, rgba(6, 10, 24, 0.85) 0%, rgba(1, 2, 6, 0.8) 100%);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 24px 48px -12px rgba(0, 0, 0, 0.9),
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.15);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html.light .glass-ios-card {
+  background: #ffffff;
+  border: 1px solid #dce6f2;
+  box-shadow: 
+    0 4px 20px -4px rgba(12, 74, 110, 0.06),
+    0 1px 3px 0 rgba(15, 23, 42, 0.02);
+  color: #1e293b;
+}
+
+.glass-ios-card:hover {
+  border-color: rgba(96, 165, 250, 0.45);
+  box-shadow: 
+    0 30px 60px -12px rgba(6, 18, 50, 0.9),
+    0 0 35px -5px rgba(56, 189, 248, 0.22);
+}
+
+html.light .glass-ios-card:hover {
+  border-color: #38bdf8;
+  box-shadow: 
+    0 12px 30px -6px rgba(2, 132, 199, 0.12),
+    0 0 0 1px rgba(56, 189, 248, 0.35);
+}
+
+.glass-ios-pill {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+html.light .glass-ios-pill {
+  background: #ffffff;
+  border: 1px solid #d0deec;
+  box-shadow: 0 2px 6px rgba(15, 76, 129, 0.04);
+  color: #1e293b;
+}
+
+.glass-header {
+  background: rgba(1, 2, 8, 0.92);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+html.light .glass-header {
+  background: rgba(248, 251, 255, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid #dce6f2;
+}
+
+/* Plaque de verre / Vitre iOS GemmaS réaliste pour le Footer */
+.glass-slab-gemmas {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 2rem;
+  box-shadow: 
+    0 30px 60px -20px rgba(0, 0, 0, 0.8),
+    inset 0 1px 2px 0 rgba(255, 255, 255, 0.35);
+  position: relative;
+  overflow: hidden;
+}
+
+html.light .glass-slab-gemmas {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 246, 253, 0.92) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid #dce6f2;
+  box-shadow: 
+    0 20px 40px -15px rgba(15, 76, 129, 0.08),
+    inset 0 1px 2px 0 rgba(255, 255, 255, 1);
+  color: #1e293b;
+}
+
+/* 3D Transform Utilities */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.perspective-1200 {
+  perspective: 1200px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+/* Subtle glow animations */
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.65;
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 8s ease-in-out infinite;
+}
+
+/* Custom modern scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #010208;
+}
+html.light ::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+html.light ::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}

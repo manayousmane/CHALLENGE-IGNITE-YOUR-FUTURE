@@ -1,0 +1,6 @@
+{
+  "name": "Parcours AI",
+  "description": "Plateforme intelligente d'orientation professionnelle et de roadmaps de carrières personnalisées propulsée par l'IA pour l'Afrique et l'international.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
