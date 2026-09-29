@@ -21,7 +21,8 @@ import { FeedbackModal } from './components/ui/FeedbackModal';
 import { Career } from './types';
 import { useTheme } from './context/ThemeContext';
 import { CAREERS_DATA } from './data/careersData';
-import { Sparkles, ArrowRight, ShieldCheck, Waypoints, Briefcase, Award, Users, Star } from 'lucide-react';
+import { Sparkles, ArrowRight, ShieldCheck, Waypoints, Briefcase, Award, Users, Star, CheckCircle2 } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 export type AppPage = 'home' | 'metiers' | 'chat-advisor' | 'dashboard' | 'method' | 'team' | 'faq';
 
@@ -39,19 +40,65 @@ function MainApp() {
   const [authReason, setAuthReason] = useState<string | undefined>(undefined);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  // Supabase redirige ici après un clic sur le lien "mot de passe oublié"
-  // reçu par email, avec une session de type "recovery" déjà établie
-  // (grâce à detectSessionInUrl: true dans supabaseClient.ts). On ouvre
-  // alors directement le modal en mode "reset" pour que l'utilisateur
-  // puisse choisir son nouveau mot de passe.
+  const [welcomeToast, setWelcomeToast] = useState<string | null>(null);
+
+  // Gestion des événements d'authentification Supabase (OAuth Google, reset mot de passe)
   useEffect(() => {
-    const { data: subscription } = supabase.auth.onAuthStateChange((event) => {
+    const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
         setAuthModalMode('reset');
         setIsAuthModalOpen(true);
+      } else if (event === 'SIGNED_IN' && session?.user) {
+        setIsAuthModalOpen(false);
+        // Si l'URL contient les tokens OAuth (retour de redirection Google)
+        if (window.location.hash.includes('access_token=') || window.location.hash.includes('refresh_token=')) {
+          window.history.replaceState(null, '', window.location.pathname + '#/dashboard');
+          setCurrentPage('dashboard');
+        }
+        const name =
+          session.user.user_metadata?.full_name ||
+          session.user.user_metadata?.name ||
+          session.user.email?.split('@')[0] ||
+          '';
+        if (name) {
+          setWelcomeToast(`Bienvenue, ${name} !`);
+          try {
+            confetti({ particleCount: 50, spread: 55, origin: { y: 0.15 } });
+          } catch {
+            /* ignore */
+          }
+          setTimeout(() => setWelcomeToast(null), 4500);
+        }
       }
     });
     return () => subscription.subscription.unsubscribe();
+  }, []);
+
+  // Détection proactive au chargement si un hash de jeton OAuth Google est présent
+  useEffect(() => {
+    if (window.location.hash.includes('access_token=') || window.location.hash.includes('refresh_token=')) {
+      supabase.auth.getSession().then(({ data }) => {
+        if (data.session?.user) {
+          window.history.replaceState(null, '', window.location.pathname + '#/dashboard');
+          setCurrentPage('dashboard');
+          setIsAuthModalOpen(false);
+          const name =
+            data.session.user.user_metadata?.full_name ||
+            data.session.user.user_metadata?.name ||
+            data.session.user.email?.split('@')[0] ||
+            '';
+          if (name) {
+            setWelcomeToast(`Bienvenue, ${name} !`);
+            try {
+              confetti({ particleCount: 50, spread: 55, origin: { y: 0.15 } });
+            } catch {
+              /* ignore */
+            }
+            setTimeout(() => setWelcomeToast(null), 4500);
+          }
+        }
+      });
+    }
   }, []);
   
   // Modale Juridique & Conformité APDP Bénin
@@ -154,6 +201,21 @@ function MainApp() {
         onOpenSearch={() => setIsSearchOpen(true)}
         onOpenProfile={() => setIsProfileModalOpen(true)}
       />
+
+      {/* Notification Toast de bienvenue suite à la connexion */}
+      {welcomeToast && (
+        <div className="fixed top-20 right-4 sm:right-8 z-50 animate-in slide-in-from-top-3 fade-in duration-200">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white dark:bg-[#070e28] border border-cyan-500/40 shadow-2xl shadow-cyan-950/40 text-xs font-semibold text-slate-900 dark:text-white">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 text-white flex items-center justify-center shrink-0 shadow-md">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="font-bold text-xs text-slate-900 dark:text-white">Connexion réussie</p>
+              <p className="text-[11px] text-cyan-600 dark:text-cyan-400 font-normal">{welcomeToast}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* =========================================================================
           ROUTAGE DU CONTENU MULTI-PAGES

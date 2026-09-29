@@ -180,6 +180,8 @@ export async function syncDashboardWithCloud(userId: string): Promise<UserDashbo
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) return null;
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) return null;
     const dbDash = await res.json();
 
     const parsedDiagnostics = dbDash.diagnostics_data || [];

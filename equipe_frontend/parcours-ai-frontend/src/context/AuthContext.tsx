@@ -94,6 +94,8 @@ async function fetchBackendProfile(accessToken: string): Promise<BackendProfile 
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     if (!res.ok) return null;
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) return null;
     return await res.json();
   } catch (err) {
     console.warn('Impossible de récupérer le profil enrichi depuis le backend:', err);
@@ -115,6 +117,8 @@ async function pushBackendProfile(
       body: JSON.stringify(patch),
     });
     if (!res.ok) return null;
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) return null;
     return await res.json();
   } catch (err) {
     console.warn('Échec de la mise à jour du profil backend:', err);
@@ -173,8 +177,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     lastSyncedUserId.current = session.user.id;
 
+    // Rendu UI instantané : construire immédiatement l'utilisateur depuis les métadonnées Supabase/Google
+    setUser(buildAuthUser(session.user, null));
+
+    // Récupérer le profil enrichi backend s'il existe et synchroniser
     const backendProfile = await fetchBackendProfile(session.access_token);
-    setUser(buildAuthUser(session.user, backendProfile));
+    if (backendProfile) {
+      setUser(buildAuthUser(session.user, backendProfile));
+    }
     // Synchro du dashboard en tâche de fond (fusionne les données déjà
     // présentes côté backend avec celles en localStorage, utile en cas de
     // connexion depuis un nouvel appareil/navigateur).

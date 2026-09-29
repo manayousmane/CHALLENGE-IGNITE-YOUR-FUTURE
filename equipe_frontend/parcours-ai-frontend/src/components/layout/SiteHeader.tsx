@@ -455,6 +455,23 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
             )}
           </div>
 
+          {/* AVATAR UTILISATEUR COMPACT SUR MOBILE (si connecté) */}
+          {isAuthenticated && user && (
+            <button
+              onClick={() => onNavigate('dashboard')}
+              className="lg:hidden flex items-center justify-center p-0.5 rounded-full border-2 border-cyan-500/50 hover:border-cyan-400 shadow-sm cursor-pointer"
+              title={`Mon Dashboard (${user.name})`}
+            >
+              <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-[11px] text-white overflow-hidden">
+                {user.avatar ? (
+                  <img src={user.avatar} alt={user.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                ) : (
+                  user.name.charAt(0)
+                )}
+              </div>
+            </button>
+          )}
+
           {/* BOUTON DES 3 TRAITS SUR MOBILE (HAMBURGER) : Ultra épuré & accessible */}
           <button
             onClick={() => setMobileMenuOpen(true)}
