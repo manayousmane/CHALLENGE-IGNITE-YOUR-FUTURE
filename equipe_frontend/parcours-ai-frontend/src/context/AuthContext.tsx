@@ -126,6 +126,80 @@ async function pushBackendProfile(
   }
 }
 
+function decodeJwtPayload(token: string): any {
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(json);
+  } catch (err) {
+    console.warn('[Auth] Échec du décodage JWT:', err);
+    return null;
+  }
+}
+
+function parseOAuthTokensFromUrl(): {
+  accessToken: string;
+  refreshToken: string;
+} | null {
+  if (typeof window === 'undefined') return null;
+  const hash = window.location.hash || '';
+  const search = window.location.search || '';
+  let params: URLSearchParams | null = null;
+
+  if (hash.includes('access_token=') || hash.includes('refresh_token=')) {
+    const raw = hash.startsWith('#') ? hash.slice(1) : hash;
+    params = new URLSearchParams(raw);
+  } else if (search.includes('access_token=') || search.includes('refresh_token=')) {
+    const raw = search.startsWith('?') ? search.slice(1) : search;
+    params = new URLSearchParams(raw);
+  }
+
+  if (!params) return null;
+  const accessToken = params.get('access_token');
+  const refreshToken = params.get('refresh_token');
+  if (!accessToken || !refreshToken) return null;
+
+  return { accessToken, refreshToken };
+}
+
+function buildUserFromJwt(payload: any): AuthUser {
+  const meta = payload?.user_metadata || {};
+  const appMeta = payload?.app_metadata || {};
+  const provider = appMeta.provider || (payload?.amr?.[0]?.method === 'oauth' ? 'google' : 'email');
+  const { role, situation } = readLocalRole();
+
+  const firstName = meta.given_name || undefined;
+  const lastName = meta.family_name || undefined;
+  const displayName =
+    meta.full_name ||
+    meta.name ||
+    [firstName, lastName].filter(Boolean).join(' ') ||
+    payload?.email?.split('@')[0] ||
+    'Utilisateur';
+
+  return {
+    id: payload?.sub || 'user-' + Date.now(),
+    name: displayName,
+    firstName,
+    lastName,
+    email: payload?.email || undefined,
+    phone: payload?.phone || undefined,
+    avatar: meta.avatar_url || meta.picture || undefined,
+    role,
+    situation,
+    createdAt: new Date((payload?.iat || Math.floor(Date.now() / 1000)) * 1000).toISOString(),
+    completedRoadmapsCount: 0,
+    authProvider: provider === 'google' ? 'google' : 'email',
+  };
+}
+
 function buildAuthUser(supabaseUser: SupabaseUser, backendProfile: BackendProfile | null): AuthUser {
   const meta = supabaseUser.user_metadata || {};
   const provider = supabaseUser.app_metadata?.provider as string | undefined;
@@ -158,11 +232,22 @@ function buildAuthUser(supabaseUser: SupabaseUser, backendProfile: BackendProfil
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Initialisation synchrone : si des jetons OAuth sont présents dans l'URL, l'utilisateur
+  // est immédiatement authentifié dès le PREMIER rendu (0 ms de délai, aucun clignotement)
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    const oauth = parseOAuthTokensFromUrl();
+    if (oauth) {
+      const payload = decodeJwtPayload(oauth.accessToken);
+      if (payload) {
+        return buildUserFromJwt(payload);
+      }
+    }
+    return null;
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
+    return !parseOAuthTokensFromUrl();
+  });
   // Évite une double reconstruction du profil pour la même session
-  // (onAuthStateChange se déclenche aussi bien au chargement qu'à chaque
-  // rafraîchissement de token).
   const lastSyncedUserId = useRef<string | null>(null);
 
   const syncFromSession = async (session: Session | null) => {
@@ -173,7 +258,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (lastSyncedUserId.current === session.user.id) {
-      return; // déjà synchronisé, on évite un appel réseau superflu
+      return; // déjà synchronisé
     }
     lastSyncedUserId.current = session.user.id;
 
@@ -185,22 +270,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (backendProfile) {
       setUser(buildAuthUser(session.user, backendProfile));
     }
-    // Synchro du dashboard en tâche de fond (fusionne les données déjà
-    // présentes côté backend avec celles en localStorage, utile en cas de
-    // connexion depuis un nouvel appareil/navigateur).
     syncDashboardWithCloud(session.user.id);
   };
 
   useEffect(() => {
     let mounted = true;
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      syncFromSession(data.session).finally(() => setIsLoading(false));
-    });
+    // 1. Détection prioritaire des jetons OAuth (Google) dans l'URL
+    const oauth = parseOAuthTokensFromUrl();
+    if (oauth) {
+      // Nettoyer immédiatement l'URL pour supprimer le hash technique #access_token=...
+      window.history.replaceState(null, '', window.location.pathname + '#/dashboard');
 
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
-      syncFromSession(session);
+      // Établir la session officielle dans Supabase pour la persistance et le rafraîchissement de token
+      supabase.auth.setSession({
+        access_token: oauth.accessToken,
+        refresh_token: oauth.refreshToken,
+      }).then(({ data, error }) => {
+        if (!mounted) return;
+        if (data?.session) {
+          syncFromSession(data.session);
+        }
+        if (error) {
+          console.warn('[Auth] Avertissement setSession OAuth:', error);
+        }
+      }).catch((err) => {
+        console.warn('[Auth] Exception setSession OAuth:', err);
+      }).finally(() => {
+        if (mounted) setIsLoading(false);
+      });
+    } else {
+      // 2. Chargement classique de la session depuis le stockage local
+      supabase.auth.getSession().then(({ data }) => {
+        if (!mounted) return;
+        syncFromSession(data.session).finally(() => setIsLoading(false));
+      });
+    }
+
+    const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
+      if (session) {
+        syncFromSession(session);
+      } else if (event === 'SIGNED_OUT') {
+        lastSyncedUserId.current = null;
+        setUser(null);
+      }
     });
 
     return () => {

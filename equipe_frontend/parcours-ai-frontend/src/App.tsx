@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ThemeProvider } from './context/ThemeContext';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { supabase } from './lib/supabaseClient';
 import { SiteHeader } from './components/layout/SiteHeader';
 import { HeroSection } from './components/home/HeroSection';
@@ -32,6 +32,7 @@ export type AppPage = 'home' | 'metiers' | 'chat-advisor' | 'dashboard' | 'metho
  */
 function MainApp() {
   const { theme, effectiveTheme } = useTheme();
+  const { user, isAuthenticated } = useAuth();
   const [currentPage, setCurrentPage] = useState<AppPage>('home');
   const [selectedCareer, setSelectedCareer] = useState<Career | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -41,64 +42,47 @@ function MainApp() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const [welcomeToast, setWelcomeToast] = useState<string | null>(null);
+  const hasCelebratedOAuthRef = useRef(false);
 
-  // Gestion des événements d'authentification Supabase (OAuth Google, reset mot de passe)
+  // Redirection automatique vers le dashboard si retour OAuth ou hash dashboard
   useEffect(() => {
-    const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
+    const hash = window.location.hash || '';
+    if (hash.includes('access_token=') || hash.includes('refresh_token=') || hash === '#/dashboard') {
+      setCurrentPage('dashboard');
+      setIsAuthModalOpen(false);
+    }
+  }, []);
+
+  // Déclenchement de la notification de bienvenue et confettis dès que l'utilisateur est identifié
+  useEffect(() => {
+    if (user && !hasCelebratedOAuthRef.current) {
+      const hash = window.location.hash || '';
+      const isFromOAuth = hash.includes('access_token=') || hash.includes('refresh_token=') || hash === '#/dashboard';
+      if (isFromOAuth) {
+        hasCelebratedOAuthRef.current = true;
+        setCurrentPage('dashboard');
+        setIsAuthModalOpen(false);
+        setWelcomeToast(`Bienvenue, ${user.name} !`);
+        try {
+          confetti({ particleCount: 60, spread: 60, origin: { y: 0.15 } });
+        } catch {
+          /* ignore */
+        }
+        const timer = setTimeout(() => setWelcomeToast(null), 5000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [user]);
+
+  // Écoute des événements spécifiques Supabase (récupération de mot de passe)
+  useEffect(() => {
+    const { data: subscription } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
         setAuthModalMode('reset');
         setIsAuthModalOpen(true);
-      } else if (event === 'SIGNED_IN' && session?.user) {
-        setIsAuthModalOpen(false);
-        // Si l'URL contient les tokens OAuth (retour de redirection Google)
-        if (window.location.hash.includes('access_token=') || window.location.hash.includes('refresh_token=')) {
-          window.history.replaceState(null, '', window.location.pathname + '#/dashboard');
-          setCurrentPage('dashboard');
-        }
-        const name =
-          session.user.user_metadata?.full_name ||
-          session.user.user_metadata?.name ||
-          session.user.email?.split('@')[0] ||
-          '';
-        if (name) {
-          setWelcomeToast(`Bienvenue, ${name} !`);
-          try {
-            confetti({ particleCount: 50, spread: 55, origin: { y: 0.15 } });
-          } catch {
-            /* ignore */
-          }
-          setTimeout(() => setWelcomeToast(null), 4500);
-        }
       }
     });
     return () => subscription.subscription.unsubscribe();
-  }, []);
-
-  // Détection proactive au chargement si un hash de jeton OAuth Google est présent
-  useEffect(() => {
-    if (window.location.hash.includes('access_token=') || window.location.hash.includes('refresh_token=')) {
-      supabase.auth.getSession().then(({ data }) => {
-        if (data.session?.user) {
-          window.history.replaceState(null, '', window.location.pathname + '#/dashboard');
-          setCurrentPage('dashboard');
-          setIsAuthModalOpen(false);
-          const name =
-            data.session.user.user_metadata?.full_name ||
-            data.session.user.user_metadata?.name ||
-            data.session.user.email?.split('@')[0] ||
-            '';
-          if (name) {
-            setWelcomeToast(`Bienvenue, ${name} !`);
-            try {
-              confetti({ particleCount: 50, spread: 55, origin: { y: 0.15 } });
-            } catch {
-              /* ignore */
-            }
-            setTimeout(() => setWelcomeToast(null), 4500);
-          }
-        }
-      });
-    }
   }, []);
   
   // Modale Juridique & Conformité APDP Bénin
