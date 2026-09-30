@@ -1,24 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
   <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#06b6d4" />
       <stop offset="50%" stop-color="#2563eb" />
       <stop offset="100%" stop-color="#4f46e5" />
     </linearGradient>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#06b6d4" flood-opacity="0.45" />
+    <linearGradient id="iconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+    <filter id="cyanGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#06b6d4" flood-opacity="0.8" />
     </filter>
   </defs>
-  <rect width="128" height="128" rx="28" fill="url(#bgGrad)" />
-  <g filter="url(#glow)" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <circle cx="64" cy="28" r="11" fill="#ffffff" stroke="#ffffff" />
-    <circle cx="28" cy="64" r="11" fill="#ffffff" stroke="#ffffff" />
-    <circle cx="100" cy="64" r="11" fill="#ffffff" stroke="#ffffff" />
-    <circle cx="64" cy="100" r="11" fill="#ffffff" stroke="#ffffff" />
-    <line x1="56" y1="36" x2="36" y2="56" />
-    <line x1="72" y1="36" x2="92" y2="56" />
-    <line x1="39" y1="64" x2="89" y2="64" />
-    <line x1="36" y1="72" x2="56" y2="92" />
-    <line x1="92" y1="72" x2="72" y2="92" />
+
+  <!-- Outer Squircle with Gradient Border matching Parcours-AI Header Logo -->
+  <rect x="2" y="2" width="124" height="124" rx="28" fill="url(#borderGrad)" />
+  <rect x="5" y="5" width="118" height="118" rx="25" fill="#070b1a" />
+
+  <!-- Lucide Waypoints Constellation Icon (Centered & Enhanced for High-DPI Tabs) -->
+  <g transform="translate(18, 18) scale(3.833)" stroke="url(#iconGrad)" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" filter="url(#cyanGlow)">
+    <!-- Connection lines between waypoints -->
+    <path d="m10.2 6.3-3.9 3.9" />
+    <path d="M7 12h10" />
+    <path d="m13.8 17.7 3.9-3.9" />
+
+    <!-- Waypoint Nodes -->
+    <circle cx="12" cy="4.5" r="2.5" fill="#06b6d4" />
+    <circle cx="4.5" cy="12" r="2.5" fill="#06b6d4" />
+    <circle cx="19.5" cy="12" r="2.5" fill="#06b6d4" />
+    <circle cx="12" cy="19.5" r="2.5" fill="#06b6d4" />
+
+    <!-- Pure white core dots for crisp visibility at 16x16 -->
+    <circle cx="12" cy="4.5" r="1.1" fill="#ffffff" stroke="none" />
+    <circle cx="4.5" cy="12" r="1.1" fill="#ffffff" stroke="none" />
+    <circle cx="19.5" cy="12" r="1.1" fill="#ffffff" stroke="none" />
+    <circle cx="12" cy="19.5" r="1.1" fill="#ffffff" stroke="none" />
   </g>
 </svg>
