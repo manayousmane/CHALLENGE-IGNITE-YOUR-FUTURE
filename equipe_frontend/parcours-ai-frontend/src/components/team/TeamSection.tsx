@@ -98,7 +98,7 @@ export const TeamSection: React.FC = () => {
         </div>
       </div>
 
-      {/* Team Cards Grid (Ordered: 1. Narcisse, 2. Vertueux, 3. Aïmane, 4. Ramziat, 5. Yousra) */}
+      {/* Team Cards Grid (Ordered: 1. Narcisse, 2. Vertueux, 3. Aymane, 4. Ramziat, 5. Yousra) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
         {filteredMembers.map((member, idx) => {
           const originalIndex = TEAM_MEMBERS.findIndex((m) => m.name === member.name) + 1;

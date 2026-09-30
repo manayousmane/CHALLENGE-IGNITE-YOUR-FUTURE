@@ -60,9 +60,9 @@ export const TEAM_MEMBERS: TeamMember[] = [
     portfolio: "https://vertueuxnoukpo.infinityfreeapp.com",
     github: "https://github.com/VertueuxNkp"
   },
-  /* 3. Aïmane OUSMANE - Data Engineer & Sécurité IA */
+  /* 3. Aymane OUSMANE - Data Engineer & Sécurité IA */
   {
-    name: "Aïmane OUSMANE",
+    name: "Aymane OUSMANE",
     pole: "Intelligence Artificielle, Données et Algorithmique",
     role: "Data Engineer & AI Security Architect",
     shortTitle: "Data Engineer & Sécurité IA",
