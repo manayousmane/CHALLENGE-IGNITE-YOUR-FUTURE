@@ -49,10 +49,11 @@ class GeminiService:
         user_profile: dict[str, Any] | None = None,
         web_results: list[SearchResult] | None = None,
         career_match: dict[str, Any] | None = None,
+        formations_matches: list[dict[str, Any]] | None = None,
     ) -> str:
         """Génère la réponse de conseil d'orientation en s'appuyant sur Gemini ou sur notre moteur local."""
         if not settings.gemini_api_key:
-            return self._local_advisory(message, user_profile, web_results, career_match)
+            return self._local_advisory(message, user_profile, web_results, career_match, formations_matches)
 
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{settings.gemini_model}:generateContent"
         
@@ -69,6 +70,13 @@ class GeminiService:
                 f"Salaire Bénin : {career_match.get('salaryLocal')}\n"
                 f"Salaire Remote : {career_match.get('salaryRemote')}"
             )
+        if formations_matches:
+            f_summary = "\n".join([
+                f"- {f.get('title')} à {f.get('institution')} ({f.get('location')}) - Score: {f.get('matchScore')}% - Diplôme: {f.get('degree')}"
+                for f in formations_matches[:3]
+            ])
+            context_parts.append(f"Filières universitaires béninoises certifiées en adéquation :\n{f_summary}")
+
         if web_results:
             sources_summary = "\n".join([f"- {r.title} ({r.url}): {r.snippet[:150]}" for r in web_results[:5]])
             context_parts.append(f"Informations web béninoises récentes trouvées :\n{sources_summary}")
@@ -95,7 +103,7 @@ class GeminiService:
                 return candidate.get("content", {}).get("parts", [])[0].get("text", "")
         except Exception as e:
             print(f"[GeminiService] Fallback local déclenché: {e}")
-            return self._local_advisory(message, user_profile, web_results, career_match)
+            return self._local_advisory(message, user_profile, web_results, career_match, formations_matches)
 
     def _local_advisory(
         self,
@@ -103,32 +111,44 @@ class GeminiService:
         user_profile: dict[str, Any] | None,
         web_results: list[SearchResult] | None,
         career_match: dict[str, Any] | None,
+        formations_matches: list[dict[str, Any]] | None = None,
     ) -> str:
         """Générateur local déterministe garantissant une réponse de qualité sans dépendre d'une clé API."""
-        msg_lower = message.lower()
-        
         if career_match:
-            c_title = career_match.get("title", "Carrière Tech")
+            c_title = career_match.get("title", "Carrière d'Avenir")
             c_score = career_match.get("matchScore", 92)
             c_desc = career_match.get("shortDescription", "")
             c_sal_loc = career_match.get("salaryLocal", "400.000 à 1.000.000 FCFA / mois")
-            c_sal_rem = career_match.get("salaryRemote", "35.000€ à 70.000€ / an")
+            c_sal_rem = career_match.get("salaryRemote", "Opportunités Internationales")
             c_skills = ", ".join(career_match.get("keySkills", [])[:4])
             
+            formations_section = ""
+            if formations_matches:
+                f_lines = []
+                for f in formations_matches[:3]:
+                    f_lines.append(
+                        f"- **{f.get('title')}** ({f.get('degree', 'Licence')}) — *{f.get('institution')}* ({f.get('location')}) | Indice : **{f.get('matchScore', 92)}%**\n"
+                        f"  *Conditions :* {f.get('entryRequirements', 'Bac conforme')}"
+                    )
+                formations_section = "**Filières universitaires & Écoles recommandées au Bénin :**\n" + "\n".join(f_lines) + "\n\n"
+            else:
+                formations_section = (
+                    "**Filières d'excellence recommandées au Bénin :**\n"
+                    "- Universités publiques de référence (UAC, Université de Parakou, UNSTIM).\n"
+                    "- Instituts d'excellence et Grandes Écoles spécialisées reconnues par le MESRS.\n\n"
+                )
+
             reply = (
-                f"Excellente question ! Au regard de vos aspirations et de votre intérêt, la trajectoire **{c_title}** "
-                f"représente une opportunité de premier choix (Indice d'adéquation estimé : **{c_score}%**).\n\n"
+                f"Au regard de votre diagnostic et de vos réponses, la trajectoire **{c_title}** "
+                f"représente l'opportunité la plus alignée avec votre profil (Indice d'adéquation calculé : **{c_score}%**).\n\n"
                 f"**Aperçu du métier :**\n"
                 f"{c_desc}\n\n"
+                f"{formations_section}"
                 f"**Rémunérations constatées :**\n"
                 f"- **Marché local (Bénin & sous-région) :** `{c_sal_loc}`\n"
-                f"- **Télétravail international (Remote) :** `{c_sal_rem}`\n\n"
-                f"**Compétences prioritaires à acquérir :**\n"
+                f"- **International / Télétravail :** `{c_sal_rem}`\n\n"
+                f"**Compétences prioritaires à développer :**\n"
                 f"{c_skills}\n\n"
-                f"**Formations recommandées au Bénin :**\n"
-                f"- **IFRI - Université d'Abomey-Calavi (UAC)** : Licences et Masters en Génie Logiciel, IA et Sécurité des Systèmes.\n"
-                f"- **Epitech Bénin (Cotonou / Sèmè City)** : Cursus d'expertise informatique par projets pratiques.\n"
-                f"- **ENEAM & EPAC** : Filières d'ingénierie et d'informatique appliquée de gestion.\n\n"
                 f"Vous pouvez consulter votre feuille de route détaillée en 4 phases ci-dessous et la télécharger au format PDF."
             )
             return reply
@@ -136,8 +156,8 @@ class GeminiService:
         # Réponse générique contextualisée
         return (
             f"Merci pour votre message. Chez **Parcours AI**, notre objectif est de vous orienter vers les meilleures opportunités académiques et professionnelles au Bénin.\n\n"
-            f"Les filières numériques (Génie Logiciel, Data Science & IA, Cybersécurité et Design UI/UX) offrent aujourd'hui les taux d'insertion les plus élevés du marché, tant auprès des entreprises béninoises (startups, banques, institutions publiques) que des plateformes internationales de télétravail.\n\n"
-            f"N'hésitez pas à préciser votre série de Bac, vos matières fortes ou vos préférences de formation pour affiner votre diagnostic personnalisé !"
+            f"Notre catalogue de 530 filières béninoises couvre tous les grands domaines : Santé & Médecine, Droit & Sciences Politiques, Économie & Gestion, Agronomie, Ingénierie & BTP, et Numérique & IA.\n\n"
+            f"Précisez votre série de Bac, vos matières fortes et vos préférences pour obtenir votre diagnostic personnalisé !"
         )
 
     async def generate_dashboard_insights(

@@ -1,4 +1,4 @@
-export type CareerCategory = 'all' | 'tech' | 'data_ai' | 'design' | 'security' | 'management' | 'marketing';
+export type CareerCategory = 'all' | 'tech' | 'data_ai' | 'design' | 'security' | 'management' | 'marketing' | 'sante' | 'droit' | 'finance' | 'agronomie' | 'btp';
 
 export interface RoadmapStep {
   id: string;
@@ -40,13 +40,23 @@ export interface Career {
 
 export interface UserProfile {
   name?: string;
+  serie_bac?: string;
   educationLevel?: string;
-  fieldOfStudy?: string;
+  resultats_scolaires?: string;
+  appetences?: string[];
   passions?: string[];
   interests?: string[];
+  budget_fcfa?: number;
+  ville?: string;
   technicalLevel?: 'Débutant' | 'Intermédiaire' | 'Avancé';
   workPreference?: 'Local (Bénin / Afrique)' | 'Remote International' | 'Hybride';
   targetGoals?: string;
+  fieldOfStudy?: string;
+}
+
+export interface RecommendedFormationItem extends UniversityFormation {
+  matchScore?: number;
+  matchReasons?: string[];
 }
 
 export interface ChatMessage {
@@ -57,6 +67,7 @@ export interface ChatMessage {
   createdAt?: number;
   suggestedReplies?: string[];
   recommendedCareers?: Career[];
+  recommendedFormations?: RecommendedFormationItem[];
   isComplete?: boolean;
   searchSources?: Array<{ title: string; uri: string }>;
   isGeminiGrounded?: boolean;

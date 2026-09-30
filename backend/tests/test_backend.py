@@ -141,3 +141,35 @@ def test_interactive_chat_endpoint_responds_to_frontend_format():
     assert "searchSources" in data
     assert len(data["searchSources"]) > 0
     assert data.get("recommendedCareers") is not None
+    assert data.get("recommendedFormations") is not None
+    assert len(data["recommendedFormations"]) > 0
+
+
+def test_multidisciplinary_diagnostic_matching():
+    # Test pour un profil Santé / Médecine Bac D
+    payload = {
+        "message": "Je veux soigner des patients au Bénin et devenir médecin",
+        "history": [],
+        "userProfile": {
+            "serie_bac": "Bac D",
+            "resultats_scolaires": "SVT 16/20 et Physique-Chimie",
+            "appetences": ["Santé, Médecine & Pharmacie"],
+            "budget_fcfa": 50000,
+            "ville": "Cotonou",
+        },
+        "mode": "orientation_guide",
+        "useSearch": False,
+    }
+    res = client.post("/api/chat", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["recommendedCareers"] is not None
+    top_career = data["recommendedCareers"][0]
+    assert "medecin" in top_career["id"] or "santé" in top_career["title"].lower()
+    assert data["recommendedFormations"] is not None
+    assert len(data["recommendedFormations"]) > 0
+    # Vérifier que les formations ont bien un score de match calculé et des raisons
+    top_formation = data["recommendedFormations"][0]
+    assert "matchScore" in top_formation
+    assert top_formation["matchScore"] >= 75
+    assert "matchReasons" in top_formation

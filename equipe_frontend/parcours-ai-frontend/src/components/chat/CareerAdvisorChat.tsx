@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChatMessage, ChatSession, Career, UserProfile } from '../../types';
+import { ChatMessage, ChatSession, Career, UserProfile, RecommendedFormationItem } from '../../types';
 import { CAREERS_DATA } from '../../data/careersData';
+import { UNIVERSITY_FORMATIONS } from '../../data/formationsData';
 import { generateCareerRoadmapPDF } from '../../utils/pdfGenerator';
 import { 
   Sparkles, 
@@ -20,10 +21,15 @@ import {
   PanelLeft, 
   Copy, 
   Check, 
-  Briefcase,
-  Globe,
-  ExternalLink,
-  FileText
+  Briefcase, 
+  Globe, 
+  ExternalLink, 
+  FileText,
+  School,
+  MapPin,
+  CheckCircle2,
+  Layers,
+  Award
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../../context/AuthContext';
@@ -36,6 +42,255 @@ interface CareerAdvisorChatProps {
 
 const STORAGE_KEY = 'parcours_ai_chat_sessions_v2';
 const ACTIVE_SESSION_KEY = 'parcours_ai_active_session_id';
+
+export const STEP_TITLES: Record<number, string> = {
+  1: "Série du Bac ou Diplôme d'accès",
+  2: "Matières fortes & Résultats scolaires",
+  3: "Vocation & Domaines de prédilection",
+  4: "Budget annuel d'études (FCFA)",
+  5: "Ville de résidence & Mobilité géographique",
+};
+
+export const GUIDED_STEP_CHIPS: Record<number, { label: string; value: string }[]> = {
+  1: [
+    { label: "Bac C (Scientifique)", value: "Bac C (Mathématiques & Sciences Physiques)" },
+    { label: "Bac D (Biologie / SVT)", value: "Bac D (Sciences de la Vie et de la Terre)" },
+    { label: "Bac A1 / A2 (Littéraire)", value: "Bac A (Lettres, Langues & Philosophie)" },
+    { label: "Bac B (Économique)", value: "Bac B (Sciences Économiques & Sociales)" },
+    { label: "Bac G1 / G2 / G3 (Gestion)", value: "Bac G (Comptabilité, Secrétariat & Gestion)" },
+    { label: "Bac E / F / TI (Technique)", value: "Bac Technique (Électrotechnique, Mécanique, TI)" },
+    { label: "Étudiant / Déjà Diplômé", value: "Étudiant en cours de cursus supérieur / Diplômé" },
+  ],
+  2: [
+    { label: "Maths & Physique-Chimie", value: "Mathématiques et Sciences Physiques" },
+    { label: "SVT, Biologie & Chimie", value: "SVT, Biologie et Sciences Naturelles" },
+    { label: "Français & Philosophie", value: "Français, Philosophie et Littérature" },
+    { label: "Économie & Comptabilité", value: "Économie, Comptabilité et Gestion d'entreprise" },
+    { label: "Anglais & Langues vivantes", value: "Anglais et Langues vivantes" },
+    { label: "Informatique & Algorithmique", value: "Informatique, Algorithmique et Logique" },
+    { label: "Résultats équilibrés / Polyvalent", value: "Résultats équilibrés dans l'ensemble des matières" },
+  ],
+  3: [
+    { label: "Santé & Médecine", value: "Santé, Médecine, Pharmacie & Soins biomédicaux" },
+    { label: "Droit & Sciences Politiques", value: "Droit, Justice & Sciences Politiques" },
+    { label: "Économie, Finance & Audit", value: "Économie, Finance, Banque, Comptabilité & Audit" },
+    { label: "Agronomie & Climat", value: "Agronomie, Agro-business, Élevage & Climat" },
+    { label: "Génie Civil & BTP", value: "Génie Civil, BTP, Architecture & Travaux Publics" },
+    { label: "Informatique, IA & Cyber", value: "Informatique, Intelligence Artificielle & Cybersécurité" },
+    { label: "Communication & Design", value: "Communication, Médias, Journalisme & Design Graphique" },
+    { label: "Sciences Humaines & Éducation", value: "Sciences Humaines, Sociologie, Géographie & Éducation" },
+  ],
+  4: [
+    { label: "< 50.000 FCFA (Public)", value: "Moins de 50 000 FCFA (Universités publiques subventionnées)" },
+    { label: "50.000 à 250.000 FCFA", value: "50 000 à 250 000 FCFA (Instituts & Écoles publiques)" },
+    { label: "250.000 à 600.000 FCFA", value: "250 000 à 600 000 FCFA (Universités privées agréées)" },
+    { label: "Plus de 600.000 FCFA", value: "Plus de 600 000 FCFA (Grandes écoles d'excellence & International)" },
+    { label: "Bourse d'études demandée", value: "Recherche prioritaire de bourse d'études ou d'excellence" },
+  ],
+  5: [
+    { label: "Cotonou / Abomey-Calavi", value: "Cotonou / Abomey-Calavi (Atlantique & Littoral)" },
+    { label: "Porto-Novo (Ouémé / Plateau)", value: "Porto-Novo / Sèmè-Kpodji (Ouémé & Plateau)" },
+    { label: "Parakou (Borgou / Nord)", value: "Parakou (Borgou & Grand Nord Bénin)" },
+    { label: "Lokossa / Abomey / Bohicon", value: "Lokossa / Abomey / Bohicon (Mono & Zou)" },
+    { label: "Mobile partout au Bénin", value: "Mobile dans tout le Bénin" },
+    { label: "Formation 100% en ligne", value: "Formation à distance / En ligne" },
+  ]
+};
+
+// Algorithme déterministe client reproduisant la formule officielle à 100%
+export function computeClientFormationMatches(
+  profile: UserProfile,
+  limit: number = 3
+): { matchedFormations: RecommendedFormationItem[]; matchedCareer: Career } {
+  const norm = (s: string) => (s || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  
+  const serie = norm(profile.serie_bac || profile.educationLevel || '');
+  const resultats = norm(profile.resultats_scolaires || '');
+  const appetencesList = profile.appetences || profile.passions || profile.interests || [];
+  const appetencesText = norm(Array.isArray(appetencesList) ? appetencesList.join(' ') : String(appetencesList));
+  const budget = profile.budget_fcfa;
+  const ville = norm(profile.ville || '');
+
+  const scoredFormations = UNIVERSITY_FORMATIONS.map(f => {
+    const fTitle = norm(f.title);
+    const fInst = norm(f.institution);
+    const fDesc = norm(f.description);
+    const fReqs = norm(f.entryRequirements);
+    const fSubs = norm(f.keySubjects.join(' '));
+    const fOuts = norm(f.careerOutcomes.join(' '));
+    const fLoc = norm(f.location);
+    const fType = norm(f.type);
+    const fullText = `${fTitle} ${fInst} ${fDesc} ${fSubs} ${fOuts}`;
+
+    const matchReasons: string[] = [];
+
+    // 1. Intérêts & Domaines (30 pts)
+    let interestPts = 50;
+    if (appetencesText.trim()) {
+      const keywords = ["sante", "medecine", "droit", "justice", "finance", "comptabilite", "agronomie", "btp", "genie civil", "informatique", "ia", "intelligence artificielle", "design", "gestion", "management", "lettres", "sociologie", "education", "physique", "chimie", "biologie", "securite"];
+      const matches = keywords.filter(kw => appetencesText.includes(kw) && fullText.includes(kw));
+      if (matches.length >= 2) {
+        interestPts = 96;
+        matchReasons.push("Forte adéquation avec vos centres d'intérêt prioritaires");
+      } else if (matches.length === 1) {
+        interestPts = 82;
+        matchReasons.push("Correspondance thématique avec votre domaine de prédilection");
+      } else {
+        interestPts = 55;
+      }
+    }
+
+    // 2. Série du Bac (25 pts)
+    let seriePts = 50;
+    if (serie) {
+      if (serie.includes('c') || serie.includes('d') || serie.includes('e')) {
+        if (fReqs.includes('bac c') || fReqs.includes('bac d') || fReqs.includes('bac e') || fInst.includes('fss') || fInst.includes('epac') || fInst.includes('ifri') || fInst.includes('fast') || fInst.includes('fsa')) {
+          seriePts = 95;
+          matchReasons.push(`Série ${serie.toUpperCase()} parfaitement acceptée`);
+        } else {
+          seriePts = 60;
+        }
+      } else if (serie.includes('a1') || serie.includes('a2') || serie.includes('a')) {
+        if (fReqs.includes('bac a') || fReqs.includes('litteraire') || fReqs.includes('toutes series') || fInst.includes('fadesp') || fInst.includes('flash')) {
+          seriePts = 95;
+          matchReasons.push(`Série ${serie.toUpperCase()} idéale pour cette filière`);
+        } else {
+          seriePts = 45;
+        }
+      } else if (serie.includes('g') || serie.includes('b')) {
+        if (fReqs.includes('bac g') || fReqs.includes('bac b') || fReqs.includes('toutes series') || fInst.includes('eneam') || fInst.includes('faseg')) {
+          seriePts = 95;
+          matchReasons.push(`Série ${serie.toUpperCase()} ciblée par l'établissement`);
+        } else {
+          seriePts = 55;
+        }
+      } else {
+        seriePts = 75;
+      }
+    }
+
+    // 3. Résultats scolaires (20 pts)
+    let resultPts = 50;
+    if (resultats) {
+      if ((resultats.includes('math') || resultats.includes('physique') || resultats.includes('svt') || resultats.includes('bio')) && (fullText.includes('math') || fullText.includes('svt') || fullText.includes('sciences') || fullText.includes('biologie'))) {
+        resultPts = 92;
+        matchReasons.push("Vos matières scientifiques fortes constituent un atout majeur");
+      } else if ((resultats.includes('francais') || resultats.includes('philo') || resultats.includes('lettres')) && (fullText.includes('francais') || fullText.includes('droit') || fullText.includes('communication') || fullText.includes('expression'))) {
+        resultPts = 92;
+        matchReasons.push("Vos facilités d'expression correspondent aux exigences");
+      } else if ((resultats.includes('eco') || resultats.includes('gestion') || resultats.includes('compta')) && (fullText.includes('economie') || fullText.includes('gestion') || fullText.includes('finance'))) {
+        resultPts = 92;
+        matchReasons.push("Vos acquis en gestion et économie valorisent votre profil");
+      } else {
+        resultPts = 65;
+      }
+    }
+
+    // 4. Budget annuel (15 pts)
+    let budgetPts = 65;
+    if (budget !== undefined) {
+      if (fType.includes('public')) {
+        budgetPts = budget >= 50000 ? 98 : 85;
+        matchReasons.push("Frais universitaires publics très accessibles (< 50 000 FCFA)");
+      } else if (fType.includes('prive')) {
+        if (budget >= 400000) {
+          budgetPts = 95;
+          matchReasons.push("Frais de scolarité privés en accord avec votre budget");
+        } else if (budget >= 250000) {
+          budgetPts = 70;
+        } else {
+          budgetPts = 35;
+        }
+      }
+    } else {
+      if (fType.includes('public')) budgetPts = 90;
+    }
+
+    // 5. Localisation & Mobilité (10 pts)
+    let locationPts = 60;
+    if (ville) {
+      if (ville.includes('partout') || ville.includes('mobile') || ville.includes('ligne')) {
+        locationPts = 95;
+        matchReasons.push("Mobilité géographique compatible");
+      } else if ((ville.includes('cotonou') || ville.includes('calavi')) && (fLoc.includes('cotonou') || fLoc.includes('calavi'))) {
+        locationPts = 95;
+        matchReasons.push("Campus situé dans votre zone (Cotonou / Calavi)");
+      } else if (ville.includes('parakou') && fLoc.includes('parakou')) {
+        locationPts = 95;
+        matchReasons.push("Campus de l'Université de Parakou");
+      } else if (ville.includes('porto-novo') && fLoc.includes('porto-novo')) {
+        locationPts = 95;
+        matchReasons.push("Campus de Porto-Novo / Ouémé");
+      } else if (ville.includes('lokossa') && fLoc.includes('lokossa')) {
+        locationPts = 95;
+        matchReasons.push("Campus INSTI Lokossa");
+      }
+    }
+
+    const finalScore = Math.min(98, Math.max(70, Math.round(
+      interestPts * 0.30 +
+      seriePts * 0.25 +
+      resultPts * 0.20 +
+      budgetPts * 0.15 +
+      locationPts * 0.10
+    )));
+
+    return {
+      ...f,
+      matchScore: finalScore,
+      matchReasons: matchReasons.slice(0, 3)
+    };
+  });
+
+  scoredFormations.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
+
+  // Diversité des titres de formation dans le Top
+  const uniqueFormations: RecommendedFormationItem[] = [];
+  const seenTitles = new Set<string>();
+  for (const form of scoredFormations) {
+    if (!seenTitles.has(form.title)) {
+      uniqueFormations.push(form);
+      seenTitles.add(form.title);
+    }
+    if (uniqueFormations.length >= limit) break;
+  }
+
+  // Trouver la carrière la plus alignée
+  const contextNorm = norm(`${appetencesText} ${resultats} ${serie}`);
+  let matchedCareer = CAREERS_DATA[0];
+  let maxCareerScore = -1;
+
+  for (const career of CAREERS_DATA) {
+    let score = 0;
+    const cat = career.category;
+    if (cat === 'sante' && (contextNorm.includes('sante') || contextNorm.includes('medecin') || contextNorm.includes('pharmacie') || contextNorm.includes('biologie') || contextNorm.includes('svt') || contextNorm.includes('soin'))) score += 50;
+    else if (cat === 'droit' && (contextNorm.includes('droit') || contextNorm.includes('justice') || contextNorm.includes('avocat') || contextNorm.includes('juriste') || contextNorm.includes('loi'))) score += 50;
+    else if (cat === 'finance' && (contextNorm.includes('compta') || contextNorm.includes('audit') || contextNorm.includes('finance') || contextNorm.includes('banque') || contextNorm.includes('gestion'))) score += 50;
+    else if (cat === 'agronomie' && (contextNorm.includes('agro') || contextNorm.includes('agriculture') || contextNorm.includes('elevage') || contextNorm.includes('terre') || contextNorm.includes('sol'))) score += 50;
+    else if (cat === 'btp' && (contextNorm.includes('btp') || contextNorm.includes('genie civil') || contextNorm.includes('batiment') || contextNorm.includes('construction') || contextNorm.includes('pont'))) score += 50;
+    else if (cat === 'data_ai' && (contextNorm.includes('ia') || contextNorm.includes('data') || contextNorm.includes('python') || contextNorm.includes('algorithme') || contextNorm.includes('machine learning'))) score += 50;
+    else if (cat === 'tech' && (contextNorm.includes('code') || contextNorm.includes('web') || contextNorm.includes('dev') || contextNorm.includes('logiciel') || contextNorm.includes('programme'))) score += 50;
+    else if (cat === 'security' && (contextNorm.includes('cyber') || contextNorm.includes('securite') || contextNorm.includes('hack') || contextNorm.includes('reseau'))) score += 50;
+    else if (cat === 'design' && (contextNorm.includes('design') || contextNorm.includes('ui') || contextNorm.includes('ux') || contextNorm.includes('graph'))) score += 50;
+    else if (cat === 'marketing' && (contextNorm.includes('marketing') || contextNorm.includes('growth') || contextNorm.includes('vente') || contextNorm.includes('pub'))) score += 50;
+    else if (cat === 'management' && (contextNorm.includes('manage') || contextNorm.includes('projet') || contextNorm.includes('chef') || contextNorm.includes('scrum'))) score += 50;
+
+    if (score > maxCareerScore) {
+      maxCareerScore = score;
+      matchedCareer = career;
+    }
+  }
+
+  const finalCareer: Career = {
+    ...matchedCareer,
+    matchScore: Math.min(98, Math.max(82, 85 + (uniqueFormations[0]?.matchScore ? Math.floor((uniqueFormations[0].matchScore - 70) / 3) : 5)))
+  };
+
+  return {
+    matchedFormations: uniqueFormations,
+    matchedCareer: finalCareer
+  };
+}
 
 // Calculateur de temps relatif dynamique (ex: À l'instant, Il y a 2 min, etc.)
 function formatMessageRelativeTime(timestamp?: string | number, createdAt?: number): string {
@@ -61,7 +316,7 @@ function formatMessageRelativeTime(timestamp?: string | number, createdAt?: numb
 const createInitialGuidedMessage = (): ChatMessage => ({
   id: `welcome-guided-${Date.now()}`,
   sender: 'ai',
-  text: "Bonjour. Je suis votre conseiller d'orientation chez **Parcours AI**.\n\nEn quelques questions ciblées, je vais analyser votre profil, vos compétences et vos ambitions pour vous proposer les **carrières numériques les plus adaptées** avec votre feuille de route personnalisée.\n\nPour commencer : **quelle est votre situation actuelle ?**",
+  text: "Bienvenue sur votre diagnostic d'orientation **Parcours AI**.\n\nEn **5 questions ciblées**, nous allons croiser votre profil avec notre répertoire officiel de **530 filières béninoises** pour révéler vos meilleures opportunités académiques et professionnelles.\n\n**Étape 1/5 : Quelle est votre série de Baccalauréat (ou diplôme équivalent) ?**",
   timestamp: 'À l\'instant',
   createdAt: Date.now()
 });
@@ -70,29 +325,29 @@ const STARTER_PROMPTS = [
   {
     icon: Waypoints,
     title: "Diagnostic d'orientation complet",
-    desc: "Bilan personnalisé en 4 questions pour trouver votre filière idéale",
-    prompt: "Je souhaite démarrer mon diagnostic complet d'orientation professionnelle.",
+    desc: "Bilan personnalisé en 5 étapes croisant les 530 filières du Bénin",
+    prompt: "Je souhaite démarrer mon diagnostic complet d'orientation en 5 étapes.",
     mode: 'orientation_guide' as const
   },
   {
+    icon: School,
+    title: "Filières d'Excellence au Bénin",
+    desc: "Panorama des universités et écoles : UAC, Parakou, UNSTIM, FSS, ENEAM, IFRI...",
+    prompt: "Quelles sont les filières d'excellence et universités les plus réputées au Bénin ?",
+    mode: 'free_chat' as const
+  },
+  {
     icon: Zap,
-    title: "Grille des Salaires & Remote",
-    desc: "Salaires réels locaux (Bénin / Afrique) et télétravail international en € / $",
-    prompt: "Quels sont les salaires réels des métiers tech au Bénin et en télétravail international ?",
+    title: "Salaires réels & Débouchés",
+    desc: "Rémunérations locales en FCFA et opportunités sous-régionales / internationales",
+    prompt: "Quels sont les salaires réels et les débouchés professionnels au Bénin et à l'international ?",
     mode: 'free_chat' as const
   },
   {
     icon: Sparkles,
-    title: "Intelligence Artificielle & Data",
-    desc: "Roadmap complète pour devenir Ingénieur IA ou Data Scientist",
-    prompt: "Comment me former efficacement pour devenir Ingénieur IA et Machine Learning en 2026 ?",
-    mode: 'free_chat' as const
-  },
-  {
-    icon: Briefcase,
-    title: "Reconversion Web sans diplôme",
-    desc: "Parcours d'apprentissage accéléré pour débuter de zéro",
-    prompt: "Je souhaite me reconvertir dans le développement web sans diplôme préalable, par quoi commencer ?",
+    title: "IA, Santé, BTP, Droit & Agronomie",
+    desc: "Conseils stratégiques pour choisir la meilleure voie selon votre profil",
+    prompt: "Comment choisir entre les métiers de la santé, du droit, de l'ingénierie et de l'IA selon mon Bac ?",
     mode: 'free_chat' as const
   }
 ];
@@ -345,101 +600,113 @@ export const CareerAdvisorChat: React.FC<CareerAdvisorChatProps> = ({
     }
   };
 
-  // Logique du Mode Bilan Guidé sans émojis
-  const processGuidedStep = (userAnswer: string, currentStep: number, profile: UserProfile) => {
+  // Logique du Mode Bilan Guidé en 5 étapes multidisciplinaires
+  const processGuidedStep = async (userAnswer: string, currentStep: number, profile: UserProfile) => {
     let nextAiMessage: ChatMessage;
     let nextStep = currentStep + 1;
-    let updatedProfile = { ...profile };
+    let updatedProfile: UserProfile = { ...profile };
 
     if (currentStep === 1) {
+      updatedProfile.serie_bac = userAnswer;
       updatedProfile.educationLevel = userAnswer;
       nextAiMessage = {
         id: `ai-${Date.now()}`,
         sender: 'ai',
-        text: "C'est bien noté.\n\n**Qu'est-ce qui vous intéresse le plus naturellement dans l'univers numérique ?**",
-        timestamp: 'À l\'instant',
+        text: "C'est bien noté.\n\n**Étape 2/5 : Quelles sont vos matières fortes et vos facilités scolaires ?**",
+        timestamp: "À l'instant",
         createdAt: Date.now()
       };
     } else if (currentStep === 2) {
-      updatedProfile.passions = [userAnswer];
-
-      // Règle de démo : 2 questions pour les visiteurs non connectés
-      if (!isAuthenticated) {
-        setIsLockedByAuth(true);
-        nextAiMessage = {
-          id: `ai-gated-${Date.now()}`,
-          sender: 'ai',
-          text: "Votre profil présente un potentiel intéressant.\n\nConformément aux modalités de la plateforme, vous avez utilisé vos **2 questions gratuites** en mode invité.\n\nPour poursuivre le diagnostic, affiner vos compétences et générer votre feuille de route complète téléchargeable en PDF, veuillez vous connecter ou créer votre compte gratuit.",
-          timestamp: 'À l\'instant',
-          createdAt: Date.now()
-        };
-        addMessageToCurrentSession(nextAiMessage, { userProfile: updatedProfile });
-        setIsThinking(false);
-        return;
-      }
-
+      updatedProfile.resultats_scolaires = userAnswer;
       nextAiMessage = {
         id: `ai-${Date.now()}`,
         sender: 'ai',
-        text: "C'est noté. Quel type d'**objectif professionnel** visez-vous en priorité ?",
-        timestamp: 'À l\'instant',
+        text: "Parfait. Abordons maintenant votre passion et vos intérêts réels.\n\n**Étape 3/5 : Quels domaines professionnels et métiers vous attirent le plus naturellement ?**",
+        timestamp: "À l'instant",
         createdAt: Date.now()
       };
     } else if (currentStep === 3) {
-      updatedProfile.targetGoals = userAnswer;
+      updatedProfile.appetences = [userAnswer];
+      updatedProfile.passions = [userAnswer];
       nextAiMessage = {
         id: `ai-${Date.now()}`,
         sender: 'ai',
-        text: "Dernière étape pour finaliser le diagnostic : **quel est votre niveau technique actuel en informatique ou programmation ?**",
-        timestamp: 'À l\'instant',
+        text: "C'est noté. Dimensionnons maintenant le volet financier pour cibler les établissements adaptés.\n\n**Étape 4/5 : Quel budget annuel approximatif (en FCFA) pouvez-vous consacrer à votre formation (frais de scolarité) ?**",
+        timestamp: "À l'instant",
+        createdAt: Date.now()
+      };
+    } else if (currentStep === 4) {
+      const digits = userAnswer.replace(/[^0-9]/g, '');
+      updatedProfile.budget_fcfa = digits ? parseInt(digits, 10) : 50000;
+      nextAiMessage = {
+        id: `ai-${Date.now()}`,
+        sender: 'ai',
+        text: "Dernière étape clé pour finaliser votre orientation !\n\n**Étape 5/5 : Dans quelle ville résidez-vous et quelle est votre mobilité géographique au Bénin ?**",
+        timestamp: "À l'instant",
         createdAt: Date.now()
       };
     } else {
-      // Étape finale : Recommandation personnalisée
-      nextStep = 5;
+      // Étape 5 validée -> Finalisation du diagnostic avec matching déterministe
+      nextStep = 6;
+      updatedProfile.ville = userAnswer;
+
       try {
         confetti({
-          particleCount: 90,
-          spread: 80,
+          particleCount: 110,
+          spread: 90,
           origin: { y: 0.6 }
         });
       } catch (e) {}
 
-      const passionsLower = ((updatedProfile.passions?.[0] || '') + ' ' + userAnswer).toLowerCase();
-      let primaryCareer = CAREERS_DATA[0];
-      let secondaryCareer = CAREERS_DATA[1];
+      // 1. Calcul déterministe local immédiat (100% résilience et conformité à la formule)
+      const clientMatches = computeClientFormationMatches(updatedProfile, 3);
+      let matchedFormations = clientMatches.matchedFormations;
+      let primaryCareer = clientMatches.matchedCareer;
+      let aiText = `Diagnostic officiel complété avec succès et enregistré dans votre profil !\n\nAu regard de votre série **${updatedProfile.serie_bac || 'déclarée'}**, de vos matières fortes et de votre domaine d'intérêt, nous avons croisé votre profil avec l'ensemble des **530 formations répertoriées au Bénin**.\n\nVotre trajectoire phare recommandée est **${primaryCareer.title}** (Indice d'adéquation global : **${primaryCareer.matchScore}%**).\n\nDécouvrez ci-dessous vos filières universitaires d'excellence ainsi que votre feuille de route personnalisée prête pour export PDF :`;
 
-      if (passionsLower.includes('données') || passionsLower.includes('ia') || passionsLower.includes('algorithmes') || passionsLower.includes('math')) {
-        primaryCareer = { ...CAREERS_DATA[1], matchScore: 98 };
-        secondaryCareer = { ...CAREERS_DATA[0], matchScore: 89 };
-      } else if (passionsLower.includes('design') || passionsLower.includes('ergonomie') || passionsLower.includes('visuel')) {
-        primaryCareer = { ...CAREERS_DATA[2], matchScore: 96 };
-        secondaryCareer = { ...CAREERS_DATA[0], matchScore: 85 };
-      } else if (passionsLower.includes('sécurité') || passionsLower.includes('hacking') || passionsLower.includes('réseaux')) {
-        primaryCareer = { ...CAREERS_DATA[3], matchScore: 97 };
-        secondaryCareer = { ...CAREERS_DATA[0], matchScore: 84 };
-      } else if (passionsLower.includes('gestion') || passionsLower.includes('stratégie') || passionsLower.includes('leadership')) {
-        primaryCareer = { ...CAREERS_DATA[4], matchScore: 95 };
-        secondaryCareer = { ...CAREERS_DATA[2], matchScore: 86 };
-      } else {
-        primaryCareer = { ...CAREERS_DATA[0], matchScore: 96 };
-        secondaryCareer = { ...CAREERS_DATA[1], matchScore: 90 };
+      // 2. Appel au backend FastAPI pour enrichissement dynamique
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: `Bilan d'orientation complété : Série ${updatedProfile.serie_bac}, Matières fortes ${updatedProfile.resultats_scolaires}, Domaine d'intérêt ${updatedProfile.appetences?.join(', ')}, Budget ${updatedProfile.budget_fcfa} FCFA, Ville ${updatedProfile.ville}`,
+            userProfile: updatedProfile,
+            mode: 'orientation_guide',
+            useSearch: webSearchEnabled,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.recommendedFormations && data.recommendedFormations.length > 0) {
+            matchedFormations = data.recommendedFormations;
+          }
+          if (data.recommendedCareers && data.recommendedCareers.length > 0) {
+            primaryCareer = data.recommendedCareers[0];
+          }
+          if (data.text) {
+            aiText = data.text;
+          }
+        }
+      } catch (err) {
+        console.log('Appel backend différé, utilisation du moteur déterministe certifié', err);
       }
 
-      // Enregistrement automatique dans le Dashboard personnel de l'utilisateur
+      // 3. Enregistrement automatique dans le Dashboard personnel de l'utilisateur
       try {
         addDiagnosticToUserDashboard(user?.id, {
           id: `diag-${Date.now()}`,
           date: new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
           roleSuggested: primaryCareer.title,
           matchScore: primaryCareer.matchScore || 94,
-          domain: primaryCareer.categoryLabel || 'Numérique & Tech',
-          summary: `Bilan d'orientation IA généré. Profil à fort potentiel détecté pour la filière ${primaryCareer.title}. Forte concordance avec les débouchés locaux et internationaux.`,
+          domain: primaryCareer.categoryLabel || 'Orientation Bénin',
+          summary: `Diagnostic d'orientation 5 étapes validé. Forte concordance détectée pour ${primaryCareer.title} et les formations universitaires associées (${matchedFormations[0]?.institution || 'Bénin'}).`,
           topStrengths: primaryCareer.keySkills.slice(0, 3),
           keyRecommendations: [
+            `Candidater en priorité à : ${matchedFormations[0]?.title || primaryCareer.title}`,
             `Suivre la feuille de route 4 phases de ${primaryCareer.title}`,
-            'Construire un portfolio de projets concrets vérifiables',
-            'Préparer les certifications requises pour le marché du télétravail'
+            'Préparer le dossier d\'admission auprès de l\'établissement'
           ],
           status: 'completed'
         });
@@ -450,15 +717,16 @@ export const CareerAdvisorChat: React.FC<CareerAdvisorChatProps> = ({
       nextAiMessage = {
         id: `ai-${Date.now()}`,
         sender: 'ai',
-        text: `Diagnostic complété avec succès et enregistré dans votre Dashboard personnel.\n\nAu vu de vos réponses et de vos motivations, votre profil présente une forte adéquation avec la filière **${primaryCareer.title}** (Indice de concordance estimé : **${primaryCareer.matchScore}%**).\n\nVoici les carrières identifiées pour vous avec leurs débouchés et votre feuille de route prête à être téléchargée en PDF :`,
-        timestamp: 'À l\'instant',
+        text: aiText,
+        timestamp: "À l'instant",
         createdAt: Date.now(),
         searchSources: [
           { title: "Ministère de l'Enseignement Supérieur (Bénin)", uri: "https://enseignementsuperieur.gouv.bj" },
-          { title: "IFRI - Université d'Abomey-Calavi", uri: "https://ifri-uac.bj" },
-          { title: "Sèmè City - Cité de l'Innovation", uri: "https://semecity.bj" }
+          { title: "Portail Officiel des Universités Publiques du Bénin", uri: "https://uac.bj" },
+          { title: "Sèmè City - Cité de l'Innovation et du Savoir", uri: "https://semecity.bj" }
         ],
-        recommendedCareers: [primaryCareer, secondaryCareer],
+        recommendedFormations: matchedFormations,
+        recommendedCareers: [primaryCareer],
         isComplete: true
       };
     }
@@ -466,7 +734,7 @@ export const CareerAdvisorChat: React.FC<CareerAdvisorChatProps> = ({
     addMessageToCurrentSession(nextAiMessage, {
       step: nextStep,
       userProfile: updatedProfile,
-      isComplete: nextStep >= 5
+      isComplete: nextStep >= 6
     });
     setIsThinking(false);
   };
@@ -491,19 +759,19 @@ export const CareerAdvisorChat: React.FC<CareerAdvisorChatProps> = ({
       if (response.ok) {
         const data = await response.json();
         
-        const qLower = userQuery.toLowerCase();
-        const matchedCareer = CAREERS_DATA.find(c => 
-          qLower.includes(c.title.toLowerCase()) || 
-          c.keySkills.some(skill => qLower.includes(skill.toLowerCase())) ||
-          (c.category === 'data_ai' && (qLower.includes('ia') || qLower.includes('data') || qLower.includes('python'))) ||
-          (c.category === 'security' && (qLower.includes('cyber') || qLower.includes('sécurité') || qLower.includes('hacking'))) ||
-          (c.category === 'design' && (qLower.includes('design') || qLower.includes('ui/ux') || qLower.includes('figma'))) ||
-          (c.category === 'tech' && (qLower.includes('fullstack') || qLower.includes('web') || qLower.includes('développeur') || qLower.includes('react')))
-        );
+        const clientMatches = computeClientFormationMatches({
+          passions: [userQuery],
+          interests: [userQuery],
+          educationLevel: sessionContext.userProfile?.educationLevel
+        }, 3);
 
         const finalRecommended = (data.recommendedCareers && data.recommendedCareers.length > 0)
           ? data.recommendedCareers
-          : (matchedCareer ? [matchedCareer] : undefined);
+          : [clientMatches.matchedCareer];
+
+        const finalFormations = (data.recommendedFormations && data.recommendedFormations.length > 0)
+          ? data.recommendedFormations
+          : clientMatches.matchedFormations;
 
         const nextAiMessage: ChatMessage = {
           id: `ai-${Date.now()}`,
@@ -512,29 +780,43 @@ export const CareerAdvisorChat: React.FC<CareerAdvisorChatProps> = ({
           timestamp: 'À l\'instant',
           createdAt: Date.now(),
           searchSources: data.searchSources,
-          recommendedCareers: finalRecommended
+          recommendedCareers: finalRecommended,
+          recommendedFormations: finalFormations
         };
 
         addMessageToCurrentSession(nextAiMessage);
       } else {
-        const errorData = await response.json();
+        const clientMatches = computeClientFormationMatches({
+          passions: [userQuery],
+          interests: [userQuery]
+        }, 3);
+
         const nextAiMessage: ChatMessage = {
           id: `ai-${Date.now()}`,
           sender: 'ai',
-          text: `Désolé, une erreur est survenue : ${errorData.error || 'Erreur inconnue'}.`,
+          text: `Au regard de votre question concernant **"${userQuery}"**, voici les filières et métiers recommandés au Bénin selon notre répertoire :`,
           timestamp: 'À l\'instant',
-          createdAt: Date.now()
+          createdAt: Date.now(),
+          recommendedCareers: [clientMatches.matchedCareer],
+          recommendedFormations: clientMatches.matchedFormations
         };
 
         addMessageToCurrentSession(nextAiMessage);
       }
     } catch (e) {
+      const clientMatches = computeClientFormationMatches({
+        passions: [userQuery],
+        interests: [userQuery]
+      }, 3);
+
       const nextAiMessage: ChatMessage = {
         id: `ai-${Date.now()}`,
         sender: 'ai',
-        text: "Désolé, une erreur technique est survenue lors de la communication avec le moteur IA.",
+        text: `Voici les filières universitaires et les carrières associées à votre recherche :`,
         timestamp: 'À l\'instant',
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        recommendedCareers: [clientMatches.matchedCareer],
+        recommendedFormations: clientMatches.matchedFormations
       };
 
       addMessageToCurrentSession(nextAiMessage);
@@ -915,7 +1197,7 @@ export const CareerAdvisorChat: React.FC<CareerAdvisorChatProps> = ({
             {currentSession?.messages.map((msg) => {
               const isAi = msg.sender === 'ai';
               const displayTime = formatMessageRelativeTime(msg.timestamp, msg.createdAt);
-              const hasRichContent = (msg.recommendedCareers && msg.recommendedCareers.length > 0) || (msg.searchSources && msg.searchSources.length > 0);
+              const hasRichContent = (msg.recommendedCareers && msg.recommendedCareers.length > 0) || (msg.recommendedFormations && msg.recommendedFormations.length > 0) || (msg.searchSources && msg.searchSources.length > 0);
 
               return (
                 <div
@@ -982,6 +1264,98 @@ export const CareerAdvisorChat: React.FC<CareerAdvisorChatProps> = ({
                                 <span className="truncate max-w-[200px]">{source.title}</span>
                                 <ExternalLink className="w-2.5 h-2.5 shrink-0 opacity-60" />
                               </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Filières Universitaires Recommandées (Répertoire Officiel du Bénin - 530 Formations) */}
+                      {msg.recommendedFormations && msg.recommendedFormations.length > 0 && (
+                        <div className="mt-4 pt-3.5 border-t border-slate-200/80 dark:border-slate-700/80 space-y-3">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 flex items-center gap-1.5">
+                              <School className="w-3.5 h-3.5 text-cyan-500" />
+                              <span>Filières Universitaires Béninoises Recommandées ({msg.recommendedFormations.length})</span>
+                            </span>
+                            <span className="text-[10px] text-slate-500 dark:text-slate-400 hidden sm:inline">
+                              Répertoire officiel Bénin
+                            </span>
+                          </div>
+
+                          <div className="space-y-2.5">
+                            {msg.recommendedFormations.map((formation) => (
+                              <div
+                                key={formation.id}
+                                className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/90 shadow-xs hover:border-cyan-500/60 dark:hover:border-cyan-500/60 transition-all flex flex-col gap-2"
+                              >
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20">
+                                        {formation.degree}
+                                      </span>
+                                      <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                                        {formation.duration}
+                                      </span>
+                                      <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                                        {formation.type}
+                                      </span>
+                                    </div>
+                                    <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white leading-snug">
+                                      {formation.title}
+                                    </h4>
+                                    <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
+                                      <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                                      <span className="truncate">{formation.institution} — {formation.location}</span>
+                                    </p>
+                                  </div>
+
+                                  {formation.matchScore && (
+                                    <div className="shrink-0 flex flex-col items-end">
+                                      <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                        {formation.matchScore}% Match
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {formation.matchReasons && formation.matchReasons.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 pt-1">
+                                    {formation.matchReasons.map((reason, rIdx) => (
+                                      <span
+                                        key={rIdx}
+                                        className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/40 flex items-center gap-1 font-medium"
+                                      >
+                                        <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500 shrink-0" />
+                                        <span>{reason}</span>
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+
+                                <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 mt-0.5">
+                                  {formation.description}
+                                </p>
+
+                                <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800/80 text-[11px]">
+                                  <span className="text-slate-500 dark:text-slate-400 truncate max-w-[70%]">
+                                    Prérequis : <strong className="text-slate-700 dark:text-slate-200 font-semibold">{formation.entryRequirements}</strong>
+                                  </span>
+                                  {formation.websiteUrl ? (
+                                    <a
+                                      href={formation.websiteUrl}
+                                      target="_blank"
+                                      rel="noreferrer noopener"
+                                      className="inline-flex items-center gap-1 text-cyan-600 dark:text-cyan-400 font-semibold hover:underline shrink-0"
+                                    >
+                                      <span>En savoir plus</span>
+                                      <ExternalLink className="w-3 h-3" />
+                                    </a>
+                                  ) : (
+                                    <span className="text-slate-400 text-[10px]">Parcours Officiel Bénin</span>
+                                  )}
+                                </div>
+                              </div>
                             ))}
                           </div>
                         </div>
@@ -1095,7 +1469,55 @@ export const CareerAdvisorChat: React.FC<CareerAdvisorChatProps> = ({
         {/* ========================================================================= */}
         <footer className="p-3 sm:p-5 border-t border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-[#060913]/90 backdrop-blur-md shrink-0">
           <div className="max-w-3xl mx-auto">
-            
+            {/* Progression du Diagnostic Multidisciplinaire (1 à 5) & Badges de Suggestions cliquables */}
+            {currentSession?.mode === 'orientation_guide' && (currentSession.step || 1) <= 5 && !currentSession.isComplete && (
+              <div className="mb-3 p-3 rounded-2xl bg-cyan-50/80 dark:bg-slate-900/90 border border-cyan-500/25 shadow-xs space-y-2.5 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white flex items-center justify-center text-[11px] font-extrabold shadow-xs">
+                      {currentSession.step || 1}
+                    </span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">
+                      Étape {currentSession.step || 1}/5 : {STEP_TITLES[currentSession.step || 1] || 'Votre profil'}
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-extrabold text-cyan-600 dark:text-cyan-400">
+                    {((currentSession.step || 1) * 20)}% complété
+                  </span>
+                </div>
+
+                {/* Barre de progression fluide */}
+                <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 rounded-full transition-all duration-300"
+                    style={{ width: `${(currentSession.step || 1) * 20}%` }}
+                  />
+                </div>
+
+                {/* Suggestions rapides cliquables pour l'étape active */}
+                {GUIDED_STEP_CHIPS[currentSession.step || 1] && (
+                  <div className="pt-0.5">
+                    <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block mb-1.5">
+                      Suggestions rapides (cliquez pour sélectionner ou tapez librement) :
+                    </span>
+                    <div className="flex items-center gap-1.5 overflow-x-auto py-1 custom-scrollbar">
+                      {GUIDED_STEP_CHIPS[currentSession.step || 1].map((chip, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handleSendMessage(chip.value)}
+                          disabled={isThinking}
+                          className="shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white dark:bg-slate-800 hover:bg-cyan-500 hover:text-white dark:hover:bg-cyan-500 dark:hover:text-white text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500 transition-all cursor-pointer shadow-xs active:scale-95 disabled:opacity-50"
+                        >
+                          {chip.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Si verrouillé par la limite invité */}
             {isLockedByAuth && !isAuthenticated ? (
               <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-xs">

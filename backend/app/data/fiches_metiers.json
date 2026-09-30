@@ -788,5 +788,596 @@
         "milestoneCheck": "Rapport d'audit professionnel prêt à être vendu à un client ou une entreprise."
       }
     ]
+  },
+  {
+    "id": "medecin-sante",
+    "title": "Médecin Généraliste & Professionnel de Santé",
+    "category": "sante",
+    "categoryLabel": "Santé & Sciences Médicales",
+    "shortDescription": "Diagnostique, traite et prévient les pathologies médicales au sein des hôpitaux (CNHU, CHUD) et structures sanitaires du Bénin.",
+    "fullDescription": "Le médecin au Bénin assure la prise en charge médicale des populations, de la consultation générale aux urgences médico-chirurgicales. Formé à la Faculté des Sciences de la Santé (FSS Cotonou / Parakou), il allie éthique médicale, sens clinique et dévouement au service de la santé communautaire et publique.",
+    "salaryLocal": "400 000 - 1 200 000 FCFA / mois",
+    "salaryRemote": "Organisations Internationales (OMS, UNICEF, Croix-Rouge)",
+    "marketDemand": "Très forte",
+    "demandLocation": "Cotonou, Parakou, Porto-Novo, Hôpitaux de zone & International",
+    "keySkills": [
+      "Sémiologie & Diagnostic clinique",
+      "Pharmacologie & Thérapeutique",
+      "Urgences médico-chirurgicales",
+      "Santé publique & Épidémiologie",
+      "Éthique médicale & Relation patient"
+    ],
+    "tools": [
+      "Dossier Médical Électronique (DME)",
+      "Stéthoscope & Outils cliniques",
+      "Télémédecine",
+      "Protocoles OMS"
+    ],
+    "prerequisites": "Baccalauréat série D ou C avec d'excellents résultats en SVT, Physique-Chimie et Mathématiques. Vocation humaniste et rigueur.",
+    "accentColor": "from-emerald-500 to-teal-500",
+    "iconName": "HeartPulse",
+    "roadmap": [
+      {
+        "id": "med-p1",
+        "phase": "Phase 1 : Premier Cycle Médical (PCEM)",
+        "duration": "2 ans",
+        "title": "Anatomie Humaine, Physiologie, Histologie & Biochimie",
+        "description": "Acquisition des fondements de la biologie humaine, de l'anatomie descriptive et de la physiologie des grands systèmes.",
+        "skillsAcquired": [
+          "Anatomie générale",
+          "Physiologie humaine",
+          "Biochimie médicale",
+          "Biophysique"
+        ],
+        "recommendedCourses": [
+          {
+            "name": "PCEM - Faculté des Sciences de la Santé (FSS)",
+            "platform": "UAC / Univ Parakou",
+            "type": "Certifiant"
+          },
+          {
+            "name": "Anatomy & Physiology Foundations",
+            "platform": "edX / Harvard",
+            "type": "Gratuit"
+          }
+        ],
+        "practicalProject": "Dissections anatomiques et premières gardes d'observation en milieu hospitalier.",
+        "milestoneCheck": "Validation des examens théoriques et pratiques du premier cycle médical."
+      },
+      {
+        "id": "med-p2",
+        "phase": "Phase 2 : Deuxième Cycle & Sémiologie",
+        "duration": "2 ans",
+        "title": "Sémiologie Clinique, Pathologies Tropicales & Thérapeutique",
+        "description": "Apprentissage de l'examen clinique méthodique du patient, reconnaissance des syndromes et prise en charge des maladies infectieuses.",
+        "skillsAcquired": [
+          "Sémiologie médicale",
+          "Infectiologie & Paludologie",
+          "Pharmacologie générale",
+          "Imagerie médicale"
+        ],
+        "recommendedCourses": [
+          {
+            "name": "Guide Pratique de Thérapeutique Médicale",
+            "platform": "FSS Cotonou",
+            "type": "Pratique"
+          },
+          {
+            "name": "Clinical Skills & Diagnosis",
+            "platform": "Coursera",
+            "type": "Certifiant"
+          }
+        ],
+        "practicalProject": "Tenue des observations cliniques en services de médecine interne et pédiatrie.",
+        "milestoneCheck": "Maîtrise de l'anamnèse et de l'examen clinique complet en situation réelle."
+      },
+      {
+        "id": "med-p3",
+        "phase": "Phase 3 : Externat & Stages Hospitaliers",
+        "duration": "2 ans",
+        "title": "Stages Cliniques Intensifs (CNHU, Urgences, Chirurgie, Gynécologie)",
+        "description": "Pratique hospitalière active aux côtés des maîtres de stage : gardes d'urgences, accouchements, petite chirurgie et réanimation.",
+        "skillsAcquired": [
+          "Gestes d'urgence médicale",
+          "Pédiatrie & Néonatologie",
+          "Gynécologie-Obstétrique",
+          "Chirurgie de base"
+        ],
+        "recommendedCourses": [
+          {
+            "name": "Protocoles d'Urgences Hospitalières Bénin",
+            "platform": "Ministère de la Santé",
+            "type": "Pratique"
+          }
+        ],
+        "practicalProject": "Responsabilité sous tutelle d'un pool de patients hospitalisés et participation aux gardes de nuit.",
+        "milestoneCheck": "Validation de tous les stages hospitaliers majeurs et carnet de stages complet."
+      },
+      {
+        "id": "med-p4",
+        "phase": "Phase 4 : Internat, Thèse de Doctorat d'État & Ordre des Médecins",
+        "duration": "1 an",
+        "title": "Soutenance de la Thèse d'État en Médecine & Insertion",
+        "description": "Rédaction et soutenance publique de la thèse de Doctorat d'État, inscription au tableau de l'Ordre National des Médecins du Bénin (ONMB).",
+        "skillsAcquired": [
+          "Rédaction scientifique médicale",
+          "Gestion d'un centre de santé",
+          "Déontologie médicale béninoise"
+        ],
+        "recommendedCourses": [
+          {
+            "name": "Déontologie et Législation Sanitaire",
+            "platform": "Ordre des Médecins du Bénin",
+            "type": "Certifiant"
+          }
+        ],
+        "practicalProject": "Thèse de doctorat basée sur une recherche épidémiologique ou clinique sur le terrain béninois.",
+        "milestoneCheck": "Diplôme d'État de Docteur en Médecine et prestation du Serment d'Hippocrate."
+      }
+    ]
+  },
+  {
+    "id": "juriste-affaires",
+    "title": "Juriste d'Affaires & Avocat d'Entreprise",
+    "category": "droit",
+    "categoryLabel": "Droit, Justice & Régulation",
+    "shortDescription": "Conseille les entreprises sur le droit des affaires OHADA, sécurise les contrats et gère le contentieux et la conformité légale.",
+    "fullDescription": "Spécialiste du droit commercial OHADA, du droit fiscal et du droit du travail au Bénin, le juriste d'affaires sécurise les investissements, négocie les contrats commerciaux et protège les intérêts stratégiques des entreprises et institutions publiques.",
+    "salaryLocal": "350 000 - 1 100 000 FCFA / mois",
+    "salaryRemote": "25 000€ - 55 000€ / an (Conseil sous-régional & International)",
+    "marketDemand": "Forte",
+    "demandLocation": "Cotonou, Porto-Novo, Espace OHADA & Sous-région",
+    "keySkills": [
+      "Droit des affaires OHADA",
+      "Rédaction contractuelle",
+      "Fiscalité des entreprises",
+      "Contentieux & Arbitrage",
+      "Protection des données & APDP"
+    ],
+    "tools": [
+      "Jurisprudence CCJA",
+      "Légifrance / Textes OHADA",
+      "Word / Outils de veille juridique",
+      "Plateformes de signature électronique"
+    ],
+    "prerequisites": "Bac A1, A2, B ou D avec grande aisance d'expression écrite et orale, rigueur logique et esprit d'analyse.",
+    "accentColor": "from-amber-500 to-orange-500",
+    "iconName": "Scale",
+    "roadmap": [
+      {
+        "id": "jur-p1",
+        "phase": "Phase 1 : Licence Fondamentale en Droit",
+        "duration": "3 ans (Bac+3)",
+        "title": "Droit Civil, Droit Constitutionnel & Introduction Juridique",
+        "description": "Maîtrise des concepts juridiques fondamentaux : théorie générale du droit, méthodologie du commentaire d'arrêt et de la dissertation juridique.",
+        "skillsAcquired": [
+          "Méthodologie juridique",
+          "Droit des obligations",
+          "Droit constitutionnel",
+          "Droit administratif"
+        ],
+        "recommendedCourses": [
+          {
+            "name": "Licence Droit Privé / Public",
+            "platform": "FADESP UAC / Univ Parakou",
+            "type": "Certifiant"
+          }
+        ],
+        "practicalProject": "Rédaction de commentaires d'arrêts de la Cour Constitutionnelle et tribunaux du Bénin.",
+        "milestoneCheck": "Obtention de la Licence en Droit avec mention."
+      },
+      {
+        "id": "jur-p2",
+        "phase": "Phase 2 : Spécialisation Droit OHADA & Entreprise",
+        "duration": "1 an",
+        "title": "Actes Uniformes OHADA, Droit des Sociétés & Fiscalité",
+        "description": "Approfondissement des règles régissant les sociétés commerciales, les sûretés, les procédures collectives et les baux commerciaux dans l'espace OHADA.",
+        "skillsAcquired": [
+          "Actes uniformes OHADA",
+          "Droit fiscal béninois",
+          "Droit du travail & Prévoyance sociale"
+        ],
+        "recommendedCourses": [
+          {
+            "name": "Droit des Sociétés Commerciales OHADA",
+            "platform": "ERSUMA (Porto-Novo)",
+            "type": "Certifiant"
+          }
+        ],
+        "practicalProject": "Constitution fictive d'une SAS ou SARL avec rédaction intégrale des statuts et pactes d'actionnaires.",
+        "milestoneCheck": "Capacité à auditer la conformité juridique d'une PME."
+      },
+      {
+        "id": "jur-p3",
+        "phase": "Phase 3 : Master Professionnel & Pratique Contractuelle",
+        "duration": "1 an",
+        "title": "Négociation de Contrats Commerciaux, Arbitrage & Compliance",
+        "description": "Maîtrise de la rédaction de contrats d'affaires complexes et conformité APDP.",
+        "skillsAcquired": [
+          "Rédaction contractuelle avancée",
+          "Arbitrage commercial (CAMEC Bénin)",
+          "Protection des données personnelles (APDP)"
+        ],
+        "recommendedCourses": [
+          {
+            "name": "Master Droit des Affaires & Fiscalité",
+            "platform": "FADESP / Chaire UNESCO",
+            "type": "Certifiant"
+          }
+        ],
+        "practicalProject": "Simulation d'une négociation contractuelle d'investissement étranger et clauses d'arbitrage.",
+        "milestoneCheck": "Validation du Master 2 avec mémoire professionnel soutenu."
+      },
+      {
+        "id": "jur-p4",
+        "phase": "Phase 4 : Stage en Cabinet, Barreau (CAPA) ou Direction Juridique",
+        "duration": "1 an",
+        "title": "Insertion Professionnelle, Certifications & Prestation",
+        "description": "Intégration en direction juridique ou préparation du CAPA.",
+        "skillsAcquired": [
+          "Gestion du contentieux",
+          "Stratégie de défense juridique",
+          "Négociation avec l'administration"
+        ],
+        "recommendedCourses": [
+          {
+            "name": "Certificat d'Aptitude à la Profession d'Avocat (CAPA)",
+            "platform": "Ordre des Avocats du Bénin",
+            "type": "Certifiant"
+          }
+        ],
+        "practicalProject": "Gestion d'un portefeuille de 5 dossiers de litiges commerciaux réels sous tutelle.",
+        "milestoneCheck": "Recrutement comme Juriste d'Entreprise confirmé ou prestation de serment d'Avocat."
+      }
+    ]
+  },
+  {
+    "id": "expert-comptable",
+    "title": "Expert-Comptable & Auditeur Financier",
+    "category": "finance",
+    "categoryLabel": "Finance, Gestion & Audit",
+    "shortDescription": "Certifie les comptes financiers des entreprises, réalise des audits légaux et conseille les dirigeants sur la stratégie fiscale et financière.",
+    "fullDescription": "Pilier de la santé économique des entreprises, l'expert-comptable ou auditeur financier certifie les états financiers selon le référentiel SYSCOHADA révisé.",
+    "salaryLocal": "500 000 - 1 600 000 FCFA / mois",
+    "salaryRemote": "35 000€ - 70 000€ / an (Audit international & FinOps)",
+    "marketDemand": "Très forte",
+    "demandLocation": "Cotonou, Porto-Novo, Parakou & Espace UEMOA",
+    "keySkills": [
+      "Comptabilité générale & SYSCOHADA",
+      "Audit financier & Contrôle interne",
+      "Analyse financière & Modélisation",
+      "Fiscalité d'entreprise",
+      "Normes IFRS"
+    ],
+    "tools": [
+      "Excel Avancé",
+      "Logiciels de compta (Sage, Odoo)",
+      "Power BI Financials",
+      "Outils d'audit"
+    ],
+    "prerequisites": "Bac G2, C, D ou B avec solide rigueur mathématique, sens de la gestion et intégrité déontologique.",
+    "accentColor": "from-emerald-600 to-green-600",
+    "iconName": "Calculator",
+    "roadmap": [
+      {
+        "id": "ec-p1",
+        "phase": "Phase 1 : Licence Comptabilité, Contrôle & Audit (CCA)",
+        "duration": "3 ans (Bac+3)",
+        "title": "Fondements SYSCOHADA, Comptabilité Analytique & Mathématiques Financières",
+        "description": "Acquisition des techniques d'enregistrement comptable, calcul des coûts de revient, fiscalité de base et analyse du bilan.",
+        "skillsAcquired": [
+          "Comptabilité générale SYSCOHADA",
+          "Comptabilité analytique",
+          "Droit fiscal",
+          "Mathématiques financières"
+        ],
+        "recommendedCourses": [
+          {
+            "name": "Licence CCA",
+            "platform": "ENEAM UAC / FASEG",
+            "type": "Certifiant"
+          }
+        ],
+        "practicalProject": "Établissement complet des états financiers d'une entreprise commerciale (Bilan, Compte de Résultat, TFT).",
+        "milestoneCheck": "Obtention de la Licence CCA avec maîtrise parfaite du plan de comptes SYSCOHADA."
+      },
+      {
+        "id": "ec-p2",
+        "phase": "Phase 2 : Master CCA & Finance d'Entreprise",
+        "duration": "2 ans (Bac+5)",
+        "title": "Consolidation des Comptes, Normes IFRS, Audit & Contrôle de Gestion",
+        "description": "Techniques avancées d'audit financier, cartographie des risques, consolidation et modélisation financière.",
+        "skillsAcquired": [
+          "Consolidation des comptes",
+          "Normes comptables IFRS",
+          "Méthodologie d'audit financier",
+          "Évaluation d'entreprises"
+        ],
+        "recommendedCourses": [
+          {
+            "name": "Master CCA",
+            "platform": "ENEAM / Pigier / HECM",
+            "type": "Certifiant"
+          }
+        ],
+        "practicalProject": "Mission d'audit simulée sur les comptes d'une filiale bancaire avec rapport de recommandations.",
+        "milestoneCheck": "Validation du Master 2 CCA."
+      },
+      {
+        "id": "ec-p3",
+        "phase": "Phase 3 : Diplôme d'Expertise Comptable (DECOFI UEMOA / DSCG)",
+        "duration": "2 ans",
+        "title": "Préparation des Épreuves Supérieures & Stage Professionnel en Cabinet",
+        "description": "Stage professionnel d'expertise comptable rémunéré dans un cabinet d'audit agréé par l'OECCA Bénin.",
+        "skillsAcquired": [
+          "Commissariat aux comptes",
+          "Conseil stratégique & fusion-acquisition",
+          "Fiscalité approfondie"
+        ],
+        "recommendedCourses": [
+          {
+            "name": "Préparation DECOFI UEMOA",
+            "platform": "CREFEC / OECCA Bénin",
+            "type": "Certifiant"
+          }
+        ],
+        "practicalProject": "Conduite autonome de 3 missions de commissariat aux comptes.",
+        "milestoneCheck": "Validation des épreuves écrites du DECOFI / DSCG."
+      },
+      {
+        "id": "ec-p4",
+        "phase": "Phase 4 : Soutenance du Mémoire & Inscription à l'OECCA Bénin",
+        "duration": "1 an",
+        "title": "Soutenance Finale du Diplôme d'Expert-Comptable & Agrément",
+        "description": "Soutenance du mémoire d'expertise comptable devant le jury sous-régional UEMOA et prestation de serment à l'OECCA Bénin.",
+        "skillsAcquired": [
+          "Leadership de cabinet",
+          "Déontologie professionnelle",
+          "Signature d'audit légal"
+        ],
+        "recommendedCourses": [
+          {
+            "name": "Déontologie et Normes Internationales d'Audit (ISA)",
+            "platform": "OECCA Bénin",
+            "type": "Certifiant"
+          }
+        ],
+        "practicalProject": "Rédaction d'un mémoire professionnel apportant une solution innovante pour le tissu économique béninois.",
+        "milestoneCheck": "Titre d'Expert-Comptable Diplômé et ouverture de cabinet ou poste de DAF."
+      }
+    ]
+  },
+  {
+    "id": "ingenieur-agronome",
+    "title": "Ingénieur Agronome & Bio-Innovateur",
+    "category": "agronomie",
+    "categoryLabel": "Agronomie, Agro-business & Climat",
+    "shortDescription": "Modernise la production agricole, développe des filières agroalimentaires résilientes et pilote des projets d'agro-industrie durable au Bénin.",
+    "fullDescription": "L'agriculture est le pilier économique central du Bénin. L'ingénieur agronome conçoit des systèmes de culture et d'élevage performants, déploie l'irrigation moderne et valorise les chaînes de valeur (soja, anacarde, coton, ananas, maïs) pour assurer la souveraineté alimentaire.",
+    "salaryLocal": "400 000 - 1 200 000 FCFA / mois",
+    "salaryRemote": "Organisations Internationales (FAO, BAD, FIDA, GIZ)",
+    "marketDemand": "Très forte",
+    "demandLocation": "Tout le Bénin (Calavi, Parakou, Kétou, Borgou, Zou) & Sous-région",
+    "keySkills": [
+      "Phytotechnie & Sciences du sol",
+      "Production & Nutrition animale",
+      "Agroécologie & Résilience climatique",
+      "Gestion de projets agricoles",
+      "Transformation agroalimentaire"
+    ],
+    "tools": [
+      "SIG Agricole (QGIS)",
+      "Stations météo connectées",
+      "Sondes d'humidité & Drones agricoles",
+      "Logiciels de gestion d'exploitation"
+    ],
+    "prerequisites": "Bac C ou D avec grand attrait pour la biologie, les sciences de la terre et le développement durable.",
+    "accentColor": "from-lime-600 to-emerald-600",
+    "iconName": "Sprout",
+    "roadmap": [
+      {
+        "id": "agro-p1",
+        "phase": "Phase 1 : Tronc Commun Agronomique",
+        "duration": "2 ans",
+        "title": "Botanique, Pédologie, Chimie Agricole & Zoologie",
+        "description": "Fondements scientifiques de l'agronomie : biologie végétale, fertilité des sols tropicaux, zootechnie générale et écologie.",
+        "skillsAcquired": [
+          "Analyse physico-chimique des sols",
+          "Physiologie végétale",
+          "Génétique appliquée",
+          "Statistiques agricoles"
+        ],
+        "recommendedCourses": [
+          {
+            "name": "Tronc Commun Agronomie",
+            "platform": "FSA UAC / FA Univ Parakou",
+            "type": "Certifiant"
+          }
+        ],
+        "practicalProject": "Parcelle d'essai expérimentale et analyse de la fertilité des sols.",
+        "milestoneCheck": "Validation des semestres fondamentaux d'agronomie générale."
+      },
+      {
+        "id": "agro-p2",
+        "phase": "Phase 2 : Spécialisation Agronomique",
+        "duration": "2 ans",
+        "title": "Production Végétale, Élevage, Économie Rurale ou Agroforesterie",
+        "description": "Choix de la filière d'expertise : semences, alimentation du bétail, irrigation ou agro-business.",
+        "skillsAcquired": [
+          "Protection intégrée des cultures",
+          "Systèmes d'irrigation goutte-à-goutte",
+          "Nutrition animale",
+          "Agroéconomie"
+        ],
+        "recommendedCourses": [
+          {
+            "name": "Cycle Ingénieur Agronome",
+            "platform": "FSA / Université Nationale d'Agriculture (UNA)",
+            "type": "Certifiant"
+          }
+        ],
+        "practicalProject": "Mise en place d'un protocole de fertilisation organique et lutte biologique.",
+        "milestoneCheck": "Rapport de stage de mi-parcours validé."
+      },
+      {
+        "id": "agro-p3",
+        "phase": "Phase 3 : Gestion d'Exploitation & Chaînes de Valeur",
+        "duration": "1 an",
+        "title": "Agro-Industrie, Normes Sanitaires & Financement Agricole",
+        "description": "Structuration des chaînes d'approvisionnement, transformation locale des produits et certification bio/équitable.",
+        "skillsAcquired": [
+          "Technologies post-récolte",
+          "Management de coopératives agricoles",
+          "Montage de dossiers de crédit agricole (FNDA)"
+        ],
+        "recommendedCourses": [
+          {
+            "name": "Gestion des Projets de Développement Agricole",
+            "platform": "FAO / Coursera",
+            "type": "Certifiant"
+          }
+        ],
+        "practicalProject": "Business plan complet pour la création d'une unité de transformation agroalimentaire au Bénin.",
+        "milestoneCheck": "Validation de la viabilité économique et technique du projet."
+      },
+      {
+        "id": "agro-p4",
+        "phase": "Phase 4 : Mémoire d'Ingénieur & Insertion Professionnelle",
+        "duration": "1 an",
+        "title": "Projet de Fin d'Études (PFE) & Insertion (ATDA, ONGs, Entrepreneuriat)",
+        "description": "Recherche appliquée sur le terrain, soutenance du diplôme d'Ingénieur Agronome et intégration professionnelle.",
+        "skillsAcquired": [
+          "Gestion de programmes de résilience climatique",
+          "Conseil agricole de proximité",
+          "Direction d'exploitation agro-industrielle"
+        ],
+        "recommendedCourses": [
+          {
+            "name": "Soutenance Diplôme d'Ingénieur Agronome",
+            "platform": "FSA UAC / UNA Kétou",
+            "type": "Certifiant"
+          }
+        ],
+        "practicalProject": "Thèse professionnelle d'ingénieur sur une problématique de productivité rurale au Bénin.",
+        "milestoneCheck": "Diplôme d'Ingénieur Agronome homologué et insertion."
+      }
+    ]
+  },
+  {
+    "id": "ingenieur-btp",
+    "title": "Ingénieur en Génie Civil & BTP",
+    "category": "btp",
+    "categoryLabel": "BTP, Ouvrages d'Art & Infrastructures",
+    "shortDescription": "Supervise la conception, le calcul structural et la construction de routes, ponts, bâtiments modernes et infrastructures urbaines au Bénin.",
+    "fullDescription": "Acteur clé de la modernisation urbaine et des grands travaux au Bénin (Programme d'Action du Gouvernement, asphaltage, échangeurs, ports), l'ingénieur génie civil assure la résistance mécanique des ouvrages, le respect des normes parasismiques et climatiques et la direction des chantiers.",
+    "salaryLocal": "450 000 - 1 500 000 FCFA / mois",
+    "salaryRemote": "30 000€ - 65 000€ / an (Bureaux d'études internationaux)",
+    "marketDemand": "Très forte",
+    "demandLocation": "Cotonou, Parakou, Porto-Novo, Chantiers nationaux & Afrique de l'Ouest",
+    "keySkills": [
+      "Résistance des matériaux (RDM)",
+      "Calcul de béton armé & Eurocodes",
+      "Mécanique des sols & Géotechnique",
+      "Gestion de chantier & Métré",
+      "Topographie & VRD"
+    ],
+    "tools": [
+      "AutoCAD",
+      "Robot Structural Analysis",
+      "Revit BIM",
+      "MS Project"
+    ],
+    "prerequisites": "Bac C, D, E ou F4 avec grand attrait pour la géométrie, la physique mécanique et la gestion de chantier.",
+    "accentColor": "from-amber-600 to-orange-600",
+    "iconName": "Building2",
+    "roadmap": [
+      {
+        "id": "btp-p1",
+        "phase": "Phase 1 : Sciences Préparatoires de l'Ingénieur",
+        "duration": "2 ans",
+        "title": "Mathématiques Appliquées, Mécanique Générale & Résistance des Matériaux",
+        "description": "Maîtrise des calculs de forces, moments, cinématique, thermodynamique et dessin technique.",
+        "skillsAcquired": [
+          "Mécanique des structures",
+          "RDM 1",
+          "Dessin technique & AutoCAD",
+          "Matériaux de construction"
+        ],
+        "recommendedCourses": [
+          {
+            "name": "Classes Préparatoires / Premier Cycle Ingénieur",
+            "platform": "EPAC UAC / INSTI Lokossa",
+            "type": "Certifiant"
+          }
+        ],
+        "practicalProject": "Conception 2D/3D et calcul des charges d'un bâtiment R+2 sur AutoCAD.",
+        "milestoneCheck": "Validation des concours d'entrée ou passage en cycle ingénieur de spécialité."
+      },
+      {
+        "id": "btp-p2",
+        "phase": "Phase 2 : Calcul Structural & Géotechnique",
+        "duration": "1 an",
+        "title": "Béton Armé, Charpente Métallique, Mécanique des Sols & Fondations",
+        "description": "Dimensionnement des poutres, poteaux, semelles de fondation selon les Eurocodes / BAEL, et essais de laboratoire.",
+        "skillsAcquired": [
+          "Dimensionnement béton armé",
+          "Robot Structural Analysis",
+          "Géotechnique & Essais Proctor/Triaxial",
+          "Hydraulique urbaine"
+        ],
+        "recommendedCourses": [
+          {
+            "name": "Calcul des Structures en Béton Armé",
+            "platform": "EPAC / École des Ponts (Coursera)",
+            "type": "Certifiant"
+          }
+        ],
+        "practicalProject": "Dimensionnement structural complet d'un complexe immobilier R+4 sous Robot.",
+        "milestoneCheck": "Note de calcul de structure approuvée par un ingénieur senior tuteur."
+      },
+      {
+        "id": "btp-p3",
+        "phase": "Phase 3 : Conduite de Travaux & Ouvrages d'Art",
+        "duration": "1 an",
+        "title": "Gestion de Chantier, Sécurité QHSE, Routes & Ouvrages d'Art",
+        "description": "Planification des travaux, approvisionnements, dimensionnement de chaussées bitumineuses et ponts.",
+        "skillsAcquired": [
+          "Planification de chantier (MS Project)",
+          "Normes QHSE BTP",
+          "Dimensionnement des chaussées",
+          "Métré & Devis estimatif"
+        ],
+        "recommendedCourses": [
+          {
+            "name": "Management de Projets de Construction",
+            "platform": "EPAC / PMI",
+            "type": "Certifiant"
+          }
+        ],
+        "practicalProject": "Stage conducteur de travaux sur un chantier réel d'infrastructure routière ou d'immeuble à Cotonou.",
+        "milestoneCheck": "Tenue exemplaire du journal de chantier et respect des délais et règles de sécurité."
+      },
+      {
+        "id": "btp-p4",
+        "phase": "Phase 4 : Projet de Fin d'Études & Inscription à l'ONIC Bénin",
+        "duration": "1 an",
+        "title": "Soutenance du Diplôme d'Ingénieur de Conception & Ordre des Ingénieurs",
+        "description": "Étude technique complète d'un projet national, soutenance et inscription à l'ONIC Bénin.",
+        "skillsAcquired": [
+          "Direction technique de projet BTP",
+          "Droit de la commande publique & Marchés publics",
+          "Expertise technique d'ouvrage"
+        ],
+        "recommendedCourses": [
+          {
+            "name": "Réglementation et Déontologie de l'Ingénieur BTP",
+            "platform": "ONIC Bénin",
+            "type": "Certifiant"
+          }
+        ],
+        "practicalProject": "PFE : Étude technique, structurale et financière d'un pont ou d'un tronçon routier asphalté au Bénin.",
+        "milestoneCheck": "Diplôme d'Ingénieur en Génie Civil (Bac+5) et inscription au tableau de l'Ordre."
+      }
+    ]
   }
 ]

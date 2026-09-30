@@ -45,8 +45,21 @@ async def chat_endpoint(payload: ChatRequest, request: Request) -> ChatResponse:
         if len(user_msg) > settings.max_message_length:
             raise HTTPException(status_code=413, detail="Message trop long")
 
-        # Recherche de la carrière la plus alignée
-        matched_career = catalog_service.find_best_matching_career(user_msg)
+        # Contexte enrichi combinant le message et les réponses du profil utilisateur
+        user_prof = payload.userProfile or {}
+        context_parts = [user_msg]
+        for val in user_prof.values():
+            if isinstance(val, str):
+                context_parts.append(val)
+            elif isinstance(val, list):
+                context_parts.extend([str(item) for item in val])
+        full_context = " ".join(context_parts)
+
+        # Recherche de la carrière la plus alignée (tous domaines : Santé, Droit, Finance, Agro, BTP, Tech...)
+        matched_career = catalog_service.find_best_matching_career(full_context)
+
+        # Matching déterministe parmi les 530 filières béninoises selon la formule officielle
+        matched_formations = catalog_service.match_formations(user_prof, context_text=user_msg, limit=3)
 
         # Recherche web en direct si activée
         web_results: list[SearchResult] = []
@@ -75,15 +88,17 @@ async def chat_endpoint(payload: ChatRequest, request: Request) -> ChatResponse:
         reply_text = await gemini_service.generate_chat_advisory(
             message=user_msg,
             history=payload.history,
-            user_profile=payload.userProfile,
+            user_profile=user_prof,
             web_results=web_results,
             career_match=matched_career,
+            formations_matches=matched_formations,
         )
 
         return ChatResponse(
             text=reply_text,
             searchSources=search_sources,
             recommendedCareers=[matched_career] if matched_career else None,
+            recommendedFormations=matched_formations if matched_formations else None,
             isGeminiGrounded=True,
         )
 

@@ -89,6 +89,7 @@ class ChatResponse(BaseModel):
     text: str | None = None
     searchSources: list[SearchSourceItem] | None = None
     recommendedCareers: list[dict[str, Any]] | None = None
+    recommendedFormations: list[dict[str, Any]] | None = None
     isGeminiGrounded: bool = True
 
     @model_validator(mode="after")
